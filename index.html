@@ -2,12 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
-
-    <title>aaron-portfolio</title>
+    <meta name="description" content="Aaron Correya — .NET developer based in Kochi. Junior Software Engineer @ Bytestrone. Spec-Driven Development with DDD & Vertical Slice Architecture · .NET · Next.js." />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#b3b2a8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2a2825" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Aaron Correya</title>
+    <script>
+      // Apply the stored or preferred theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var t = localStorage.getItem("theme");
+          if (t !== "light" && t !== "dark") {
+            t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          }
+          document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

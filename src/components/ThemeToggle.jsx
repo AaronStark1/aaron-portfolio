@@ -1,15 +1,26 @@
 import { useContext } from "react";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../context/ThemeContext";
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ className = "" }) {
   const { theme, setTheme } = useContext(ThemeContext);
+  const next = theme === "light" ? "dark" : "light";
+  const label = theme === "light" ? "Dark" : "Light";
 
   return (
     <button
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="px-3 py-1 border rounded-md text-sm"
+      type="button"
+      onClick={() => setTheme(next)}
+      aria-label={`Switch to ${next} theme`}
+      className={`label inline-flex items-center gap-2 cursor-pointer ${className}`}
     >
-      {theme === "light" ? "🌙 Dark" : "☀️ Light"}
+      <span
+        aria-hidden="true"
+        className="theme-dot"
+        style={{ transform: theme === "dark" ? "rotate(180deg)" : "rotate(0deg)" }}
+      />
+      <span className="link-reveal" data-text={label}>
+        <span>{label}</span>
+      </span>
     </button>
   );
 }

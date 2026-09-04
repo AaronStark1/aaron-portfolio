@@ -1,95 +1,241 @@
-import { useState, useEffect, useRef } from "react";
+import { motion as Motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import { ArrowUpRight } from "@phosphor-icons/react";
+import Sheet from "../components/Sheet";
+import RevealLink from "../components/RevealLink";
+import { TitleLine, TitleText } from "../components/TitleLines";
+import { EASE, fadeChild, riseChild, useFontsReady, useMediaQuery } from "../lib/motion";
 import { projectsData } from "../data/projects";
+import "../styles/projects.css";
+
+/* Editorial rhythm for the five tiles: two asymmetric splits, one full-width
+   band with a stacked caption, then a side-by-side pair. */
+const LAYOUT = [
+  { tone: "cream", kind: "split-right" },
+  { tone: "ochre", kind: "split-left" },
+  { tone: "ink", kind: "wide" },
+  { tone: "brick", kind: "half-left" },
+  { tone: "cream", kind: "half-right" },
+];
+
+const ITEM_CLASS = {
+  "split-right": "col-span-full grid-15",
+  "split-left": "col-span-full grid-15",
+  wide: "col-span-full",
+  "half-left": "col-span-full md:col-start-1 md:col-span-7",
+  "half-right": "col-span-full md:col-start-9 md:col-span-7",
+};
+
+const SPRING = { stiffness: 420, damping: 38, mass: 0.6 };
 
 export default function Projects() {
-  const [projects] = useState(projectsData);
-  const containerRef = useRef(null);
-
-  // fade-in animation on scroll
-  useEffect(() => {
-    const cards = containerRef.current?.querySelectorAll(".project-card");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add("opacity-100", "translate-y-0");
-        });
-      },
-      { threshold: 0.2 }
-    );
-    cards?.forEach((card) => observer.observe(card));
-    return () => observer.disconnect();
-  }, []);
+  const ready = useFontsReady();
 
   return (
-    <section className="mt-6 px-2 md:px-4 lg:px-6">
-      <div className="max-w-[1650px] mx-auto rounded-[38px] border border-[#b9b6a6]/70 px-6 py-8 md:px-12 md:py-14 lg:px-16 lg:py-16 shadow-sm bg-transparent">
-
-        <h1 className="font-grotesk text-[2.8rem] sm:text-[3.3rem] md:text-[3.8rem] lg:text-[4.4rem] font-semibold mb-12 leading-tight">
-          Selected Projects
+    <Sheet className="pb-[clamp(4rem,14vh,10rem)]" aria-labelledby="projects-heading">
+      <header className="pt-[max(1.25rem,3.5vh)] md:pt-[max(1.5rem,4.5vh)]">
+        <h1 id="projects-heading" aria-label="Selected Projects" className="display display-sans m-0">
+          <TitleLine as="span" className="block" start={ready} delay={0.15}>
+            <TitleText>Selected</TitleText>
+          </TitleLine>
+          <TitleLine as="span" className="block pt-[0.12em]" start={ready} delay={0.27}>
+            <TitleText align="right">Projects</TitleText>
+          </TitleLine>
         </h1>
+      </header>
 
-        <div
-          className="grid gap-12 md:grid-cols-2 lg:grid-cols-3"
-          ref={containerRef}
-        >
-          {projects.map((project) => (
-            <div
-              key={project.id}
-              className="
-                project-card opacity-0 translate-y-[30px] transition-all duration-[900ms]
-                rounded-[32px] border border-[#b9b6a6]/60 overflow-hidden 
-                bg-[#f7eedf] dark:bg-[#f7eedf]
-                hover:-translate-y-[6px] hover:shadow-xl
-              "
-            >
-              {/* Image */}
-              <div className="overflow-hidden">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  className="h-[200px] w-full object-cover transition duration-500 hover:scale-[1.06]"
-                />
-              </div>
+      <ol className="grid-15 mt-[clamp(3rem,8vh,6rem)] items-start gap-y-[clamp(4rem,10vh,8rem)]">
+        {projectsData.map((project, i) => (
+          <ProjectItem key={project.id} project={project} index={i} {...(LAYOUT[i] ?? LAYOUT[0])} />
+        ))}
+      </ol>
+    </Sheet>
+  );
+}
 
-              {/* Text section */}
-              <div className="px-6 py-6 flex flex-col justify-between gap-4 text-[#222] dark:text-[#222]">
-                <div>
-                  <h2 className="font-grotesk font-semibold text-xl mb-1">
-                    {project.title}
-                  </h2>
-                  <p className="font-grotesk text-sm opacity-80 leading-relaxed">
-                    {project.description}
-                  </p>
-                </div>
+/* ------------------------------------------------------------------ */
 
-                {/* Buttons */}
-                <div className="flex items-center justify-between gap-3 mt-auto">
-                  <a
-                    href={project.live}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-[10px] rounded-lg border border-[#e84534] text-[#e84534] font-semibold text-xs 
-                    hover:bg-[#e84534] hover:text-white transition-all"
-                  >
-                    Live Demo ↗
-                  </a>
+function ProjectItem({ project, index, tone, kind }) {
+  const reduce = useReducedMotion();
+  const number = String(index + 1).padStart(2, "0");
+  const child = reduce ? fadeChild : riseChild;
 
-                  <a
-                    href={project.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-[10px] rounded-lg border border-black text-black font-semibold text-xs
-                    hover:bg-black hover:text-white transition-all"
-                  >
-                    GitHub ↗
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
+  // The first item is in view on load: let the headline land before it moves.
+  const parent = {
+    hidden: {},
+    visible: { transition: { delayChildren: index === 0 ? 0.45 : 0, staggerChildren: 0.12 } },
+  };
+
+  const title = (
+    <Motion.h2
+      variants={child}
+      className="project-title m-0 text-[length:var(--fs-title)] font-normal leading-[1.05] tracking-[-0.02em]"
+    >
+      <span className="project-title__text">{project.title}</span>
+    </Motion.h2>
+  );
+
+  const description = (extra = "") => (
+    <Motion.p variants={child} className={`m-0 max-w-[38ch] text-[length:var(--fs-body)] leading-[1.35] ${extra}`}>
+      {project.description}
+    </Motion.p>
+  );
+
+  const links = (
+    <Motion.ul variants={child} className="label mt-5 flex flex-wrap gap-x-6 gap-y-3" aria-label={`${project.title} links`}>
+      <li className="inline-flex items-center gap-1">
+        <RevealLink href={project.live}>Live site</RevealLink>
+        <ArrowUpRight size={14} weight="regular" aria-hidden="true" />
+      </li>
+      <li className="inline-flex items-center gap-1">
+        <RevealLink href={project.github}>GitHub</RevealLink>
+        <ArrowUpRight size={14} weight="regular" aria-hidden="true" />
+      </li>
+    </Motion.ul>
+  );
+
+  let body;
+  if (kind === "split-right") {
+    body = (
+      <>
+        <ProjectTile project={project} number={number} tone={tone} index={index} className="col-span-full md:col-start-1 md:col-span-9" />
+        <div className="col-span-full mt-5 md:col-start-11 md:col-span-5 md:mt-0 md:self-end">
+          {title}
+          {description("mt-3")}
+          {links}
         </div>
+      </>
+    );
+  } else if (kind === "split-left") {
+    body = (
+      <>
+        <ProjectTile project={project} number={number} tone={tone} index={index} className="col-span-full md:col-start-7 md:col-span-9" />
+        <div className="col-span-full mt-5 md:col-start-1 md:col-span-5 md:mt-[4rem] md:self-start">
+          {title}
+          {description("mt-3")}
+          {links}
+        </div>
+      </>
+    );
+  } else if (kind === "wide") {
+    body = (
+      <>
+        <ProjectTile project={project} number={number} tone={tone} index={index} className="project-tile--wide w-full" />
+        <div className="grid-15 mt-5 md:mt-8">
+          <div className="col-span-full md:col-start-1 md:col-span-5">{title}</div>
+          <div className="col-span-full mt-3 md:col-start-7 md:col-span-8 md:mt-0">
+            {description()}
+            {links}
+          </div>
+        </div>
+      </>
+    );
+  } else {
+    body = (
+      <>
+        <ProjectTile project={project} number={number} tone={tone} index={index} className="w-full" />
+        <div className="mt-5 md:mt-6">
+          {title}
+          {description("mt-3")}
+          {links}
+        </div>
+      </>
+    );
+  }
 
-      </div>
-    </section>
+  return (
+    <Motion.li
+      className={`project ${ITEM_CLASS[kind]}`}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      variants={parent}
+    >
+      {body}
+    </Motion.li>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+const tileRise = {
+  hidden: { opacity: 0, y: 32 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE, delayChildren: 0.2 } },
+};
+const tileFade = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.5, delayChildren: 0.1 } },
+};
+const imageClip = {
+  hidden: { clipPath: "inset(0 0 100% 0)" },
+  visible: { clipPath: "inset(0 0 0% 0)", transition: { duration: 0.9, ease: EASE } },
+};
+const imageFade = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.5 } },
+};
+
+/* Coloured matte with the project screenshot bleeding off its bottom-right,
+   the whole tile linking to the live site. On hover devices a small "Live"
+   pill follows the pointer via spring-smoothed motion values (no React state). */
+function ProjectTile({ project, number, tone, index, className = "" }) {
+  const reduce = useReducedMotion();
+  const hoverDevice = useMediaQuery("(hover: hover)");
+  const showPill = hoverDevice && !reduce;
+
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const sx = useSpring(x, SPRING);
+  const sy = useSpring(y, SPRING);
+
+  const onPointerEnter = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const px = e.clientX - r.left;
+    const py = e.clientY - r.top;
+    x.jump(px);
+    y.jump(py);
+    sx.jump(px);
+    sy.jump(py);
+  };
+  const onPointerMove = (e) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    x.set(e.clientX - r.left);
+    y.set(e.clientY - r.top);
+  };
+
+  return (
+    <Motion.a
+      href={project.live}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${project.title}, live site`}
+      className={`project-tile tone-${tone} ${className}`}
+      variants={reduce ? tileFade : tileRise}
+      onPointerEnter={showPill ? onPointerEnter : undefined}
+      onPointerMove={showPill ? onPointerMove : undefined}
+    >
+      <span
+        className="absolute left-3 top-3 text-[length:var(--fs-ui)] font-medium leading-none tabular-nums tracking-[-0.02em] md:left-4 md:top-4"
+        aria-hidden="true"
+      >
+        {number}
+      </span>
+
+      <Motion.img
+        src={project.image}
+        alt={project.title}
+        className="project-tile__img"
+        loading={index === 0 ? "eager" : "lazy"}
+        fetchPriority={index === 0 ? "high" : undefined}
+        decoding="async"
+        variants={reduce ? imageFade : imageClip}
+      />
+
+      {showPill ? (
+        <Motion.span className="project-tile__pill label bg-fill text-fill-fg" style={{ x: sx, y: sy }} aria-hidden="true">
+          Live
+          <ArrowUpRight size={14} weight="regular" />
+        </Motion.span>
+      ) : null}
+    </Motion.a>
   );
 }

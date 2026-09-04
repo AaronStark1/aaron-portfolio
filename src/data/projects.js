@@ -2,7 +2,7 @@ export const projectsData = [
     {
         id: 1,
         title: "WoodWorld",
-        description: "A simple furniture website made to learn HTML and styling with TailwindCSS.",
+        description: "A simple furniture website made to learn HTML and styling with Tailwind CSS.",
         image: "/projects/project1.png",
         live: "https://aaron-furniture-website.netlify.app/",
         github: "https://github.com/your-repo",
@@ -26,7 +26,7 @@ export const projectsData = [
     {
         id: 4,
         title: "Simple Bank App",
-        description: "Our Bank is an interactive app made with Vanilla JavaScript and uses sessionStorage for account data and balance updates.It uses a clean light-themed neumorphic design and dynamic form switching for deposit and withdrawal alongwith transaction history.",
+        description: "Our Bank is an interactive app made with Vanilla JavaScript and uses sessionStorage for account data and balance updates.It uses a clean light-themed neumorphic design and dynamic form switching for deposit and withdrawal along with transaction history.",
         image: "/projects/project4.png",
         live: "https://aaronstark1.github.io/ourbank-website/",
         github: "https://github.com/AaronStark1/ourbank-website",
@@ -34,7 +34,7 @@ export const projectsData = [
     {
         id: 5,
         title: "Gotta Match 'Em All",
-        description: "A retro-styled Pokémon memory game built with React, NES.css, and the PokéAPI. Interface inspired by 8-bit game aesthetics,animated Pokéball loaders,score tracking and audio feedback",
+        description: "A retro-styled Pokémon memory game built with React, NES.css, and the PokéAPI. Interface inspired by 8-bit game aesthetics, Animated Pokéball loaders, score tracking and audio feedback",
         image: "/projects/project5.png",
         live: "https://pokemon-gotta-match-em-all.netlify.app/",
         github: "https://github.com/AaronStark1/gotta-match-em-all",

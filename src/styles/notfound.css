@@ -1,0 +1,15 @@
+/* 404 page only.
+   The shared title mask is tuned around the serif name on Home. At display size
+   Instrument Sans descenders (g, p, y, j) reach 0.215em below a baseline that sits
+   only 0.025em above the line box, so the mask's 0.12em bottom padding cut them.
+   The mask is opened downwards (the matching negative margin keeps layout exactly
+   as before) and each character box is made taller above its glyph so the shared
+   118% hidden offset still parks every character fully out of view before it rises. */
+.nf-headline .title-mask {
+  padding-bottom: 0.25em;
+  margin-bottom: -0.25em;
+}
+.nf-headline .title-mask .char {
+  padding-top: 0.35em;
+  margin-top: -0.35em;
+}

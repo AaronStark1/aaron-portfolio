@@ -1,0 +1,102 @@
+/* /projects page-only styles: tile tones, hover behaviour and the cursor pill.
+   Everything colour-related goes through the semantic tokens in index.css. */
+
+.project-tile {
+  --tile-bg: var(--cream);
+  --tile-fg: var(--ink);
+  /* The cursor pill uses bg-fill/text-fill-fg; inside a tile the fill is the
+     tile's own inverse so the pill stays visible on every tone in both themes. */
+  --fill: var(--tile-fg);
+  --fill-fg: var(--tile-bg);
+  position: relative;
+  display: block;
+  overflow: hidden;
+  isolation: isolate;
+  aspect-ratio: 16 / 10;
+  background-color: var(--tile-bg);
+  color: var(--tile-fg);
+  border-bottom-right-radius: var(--radius-card);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 768px) {
+  .project-tile {
+    aspect-ratio: 16 / 9;
+  }
+}
+/* The one full-width tile reads as a band, not a wall, on wide screens */
+@media (min-width: 1024px) {
+  .project-tile--wide {
+    aspect-ratio: 2 / 1;
+  }
+}
+.project-tile.tone-cream { --tile-bg: var(--cream); --tile-fg: var(--ink); }
+.project-tile.tone-ochre { --tile-bg: var(--ochre); --tile-fg: var(--ink); }
+.project-tile.tone-brick { --tile-bg: var(--brick); --tile-fg: var(--cream); }
+.project-tile.tone-ink   { --tile-bg: var(--ink-card); --tile-fg: var(--ink-card-fg); }
+
+/* Screenshot: offset from the top-left so the matte shows, bleeding off bottom-right */
+.project-tile__img {
+  position: absolute;
+  left: 8%;
+  top: 18%;
+  width: 92%;
+  height: 82%;
+  object-fit: cover;
+  object-position: left top;
+  transition: transform 0.8s var(--ease-out);
+  will-change: transform, clip-path;
+}
+
+/* Cursor-following "Live" pill: positioned by motion values, centred on the pointer */
+.project-tile__pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom-right-radius: 0.75rem;
+  translate: -50% -50%;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+/* Project title nudges right while its tile is hovered or focused */
+.project-title__text {
+  display: inline-block;
+  transition: transform 0.6s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .project-tile__pill {
+    display: inline-flex;
+  }
+  .project-tile:hover .project-tile__pill,
+  .project-tile:focus-visible .project-tile__pill {
+    opacity: 1;
+  }
+  .project-tile:hover .project-tile__img,
+  .project-tile:focus-visible .project-tile__img {
+    transform: scale(1.03);
+  }
+  .project:has(.project-tile:hover) .project-title__text,
+  .project:has(.project-tile:focus-visible) .project-title__text {
+    transform: translateX(0.35em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-tile__pill {
+    display: none;
+  }
+  .project-tile__img,
+  .project-title__text {
+    transition-duration: 0.01ms;
+    transform: none;
+  }
+}
