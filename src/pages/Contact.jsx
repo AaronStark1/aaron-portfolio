@@ -112,7 +112,7 @@ export default function Contact() {
       } else {
         setError(data.message || "Something went wrong. Please try again.");
       }
-    } catch (_) {
+    } catch {
       setError("Network error — please check your connection and try again.");
     } finally {
       setSending(false);
