@@ -7,7 +7,7 @@
 # Spec-Driven Engineering meets a Kinetic Editorial Frontend
 
 **Aaron Correya** · Junior Software Engineer (.NET) at Bytestrone · Kochi, India<br />
-[djaaronmirage123@gmail.com](mailto:djaaronmirage123@gmail.com) · [github.com/AaronStark1](https://github.com/AaronStark1)
+[djaaronmirage123@gmail.com](mailto:djaaronmirage123@gmail.com) · [github.com/AaronStark1](https://github.com/AaronStark1) · [linkedin.com/in/aaron-correya](https://www.linkedin.com/in/aaron-correya/) · [aaron-correya-portfolio.netlify.app](https://aaron-correya-portfolio.netlify.app/)
 
 <br />
 
@@ -20,7 +20,7 @@
 <br />
 
 **[▶ Live Interactive Experience](https://aaron-correya-portfolio.netlify.app/)** &nbsp;·&nbsp;
-**[💼 LinkedIn](https://linkedin.com/in/your-profile)** <sub>TODO: add LinkedIn URL</sub> &nbsp;·&nbsp;
+**[💼 LinkedIn](https://www.linkedin.com/in/aaron-correya/)** &nbsp;·&nbsp;
 **[📄 Resume](#)** <sub>TODO: add resume URL</sub>
 
 </div>
@@ -268,7 +268,7 @@ Junior Software Engineer · .NET & Full-Stack · Kochi, India
 
 [![Email](https://img.shields.io/badge/Email-djaaronmirage123%40gmail.com-bf3d34?style=flat-square&logo=gmail&logoColor=white)](mailto:djaaronmirage123@gmail.com)
 [![GitHub](https://img.shields.io/badge/GitHub-AaronStark1-3f3b37?style=flat-square&logo=github&logoColor=white)](https://github.com/AaronStark1)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-TODO-0a66c2?style=flat-square)](https://linkedin.com/in/your-profile)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Aaron_Correya-0a66c2?style=flat-square)](https://www.linkedin.com/in/aaron-correya/)
 [![Portfolio](https://img.shields.io/badge/Portfolio-Live-e7aa2c?style=flat-square&logo=googlechrome&logoColor=black)](https://aaron-correya-portfolio.netlify.app/)
 
 <sub>Typefaces: Newsreader & Instrument Sans · Design benchmark: editorial print layouts with hairline rules and tonal tiles</sub>
