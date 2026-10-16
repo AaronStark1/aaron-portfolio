@@ -11,6 +11,7 @@ const ITEMS = [
   { text: "Home", path: "/" },
   { text: "About", path: "/about" },
   { text: "Projects", path: "/projects" },
+  { text: "Achievements", path: "/achievements" },
   { text: "Contact", path: "/contact" },
 ];
 

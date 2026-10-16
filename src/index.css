@@ -260,6 +260,12 @@
   .title-mask .word {
     white-space: nowrap;
   }
+  /* Descender lines: the sans tails reach 0.2em below the line box, so the mask
+     opens 0.3em and only 0.12em of it is pulled back, which also moves the rule
+     0.18em down to sit clear of the tails instead of across them. */
+  .title-line--descenders .title-mask {
+    padding-bottom: 0.3em;
+  }
 
   /* Link reveal: current text slides up, duplicate slides in from below */
   .link-reveal {

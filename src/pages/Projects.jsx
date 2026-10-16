@@ -37,7 +37,7 @@ export default function Projects() {
           <TitleLine as="span" className="block" start={ready} delay={0.15}>
             <TitleText>Selected</TitleText>
           </TitleLine>
-          <TitleLine as="span" className="block pt-[0.12em]" start={ready} delay={0.27}>
+          <TitleLine as="span" className="block pt-[0.12em]" start={ready} delay={0.27} descenders>
             <TitleText align="right">Projects</TitleText>
           </TitleLine>
         </h1>

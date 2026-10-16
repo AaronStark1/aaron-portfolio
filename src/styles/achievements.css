@@ -1,0 +1,253 @@
+/* /achievements page-only styles: featured tiles, the index rows and the seal
+   fallback. Everything colour-related goes through the tokens in index.css. */
+
+/* Featured tile: a coloured matte with the official badge centred on it, the
+   whole tile linking to the verification page. */
+.cred-tile {
+  --tile-bg: var(--cream);
+  --tile-fg: var(--ink);
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  aspect-ratio: 16 / 10;
+  background-color: var(--tile-bg);
+  color: var(--tile-fg);
+  border-bottom-right-radius: var(--radius-card);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 768px) {
+  .cred-tile {
+    aspect-ratio: 16 / 9;
+  }
+}
+.cred-tile.tone-cream { --tile-bg: var(--cream); --tile-fg: var(--ink); }
+.cred-tile.tone-ochre { --tile-bg: var(--ochre); --tile-fg: var(--ink); }
+.cred-tile.tone-brick { --tile-bg: var(--brick); --tile-fg: var(--cream); }
+.cred-tile.tone-ink   { --tile-bg: var(--ink-card); --tile-fg: var(--ink-card-fg); }
+
+.cred-tile__badge {
+  height: 56%;
+  width: auto;
+  max-width: 68%;
+  object-fit: contain;
+  transition: transform 0.8s var(--ease-out);
+  will-change: transform;
+}
+.cred-tile__cta {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+@media (hover: hover) {
+  .cred-tile__cta {
+    opacity: 0;
+    transform: translate3d(0, 140%, 0);
+    transition: transform 0.5s var(--ease-out), opacity 0.4s var(--ease-out);
+  }
+  .cred-tile:hover .cred-tile__cta,
+  .cred-tile:focus-visible .cred-tile__cta {
+    opacity: 1;
+    transform: none;
+  }
+  .cred-tile:hover .cred-tile__badge,
+  .cred-tile:focus-visible .cred-tile__badge {
+    transform: scale(1.04);
+  }
+}
+
+/* Seal: the designed stand-in when a badge image is missing or fails to load.
+   A hairline ring with the issuer's initial set in the serif italic. */
+.cred-seal {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  user-select: none;
+}
+.cred-tile .cred-seal {
+  height: 48%;
+  font-size: clamp(2.25rem, 7vw, 5.5rem);
+}
+.cred-row .cred-seal {
+  width: 100%;
+  font-size: 1.25rem;
+}
+
+/* Index row: number · thumbnail · title and issuer · date · field · verify.
+   Date and field fold under the title on small screens. */
+.cred-row {
+  display: grid;
+  grid-template-columns: 2rem 3rem minmax(0, 1fr);
+  grid-template-areas:
+    "num thumb main"
+    "num thumb meta";
+  column-gap: 1rem;
+  row-gap: 0.6rem;
+  align-items: start;
+  border-bottom: 1px solid var(--rule);
+  padding: 1.1rem 0;
+}
+.cred-row__num    { grid-area: num; }
+.cred-row__thumb  { grid-area: thumb; width: 100%; aspect-ratio: 1; object-fit: contain; }
+.cred-row__main   { grid-area: main; min-width: 0; }
+.cred-row__meta   { grid-area: meta; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center; }
+.cred-row__actions {
+  grid-area: actions;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+}
+.cred-row__actions > * {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+@media (max-width: 767px) {
+  .cred-row__meta .cred-row__actions {
+    flex-basis: 100%;
+  }
+}
+@media (min-width: 768px) {
+  .cred-row {
+    grid-template-columns: 2.5rem 3.5rem minmax(0, 1fr) 6.5rem 8rem auto;
+    grid-template-areas: "num thumb main date field actions";
+    align-items: center;
+    column-gap: 1.5rem;
+    padding: 1.25rem 0;
+  }
+  .cred-row__meta { display: contents; }
+  .cred-row__date  { grid-area: date; }
+  .cred-row__field { grid-area: field; }
+  .cred-row__actions { justify-self: end; }
+}
+
+/* Category filters: text buttons with a hairline that fills under the active one */
+.cred-filter {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0.35rem 0;
+  color: var(--fg-muted);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s var(--ease-out), border-color 0.3s var(--ease-out);
+}
+.cred-filter:hover,
+.cred-filter[aria-pressed="true"] {
+  color: var(--fg);
+}
+.cred-filter[aria-pressed="true"] {
+  border-bottom-color: var(--fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cred-tile__badge,
+  .cred-tile__cta,
+  .cred-filter {
+    transition-duration: 0.01ms;
+    transform: none;
+  }
+  .cred-tile__cta {
+    opacity: 1;
+  }
+}
+
+/* Gallery: one credential's artwork at a time over a veiled page, with the
+   caption and actions on a hairline below. Arrows step within the gallery. */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  padding: 1rem;
+  color: var(--fg);
+  background-color: color-mix(in srgb, var(--page) 94%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+@media (min-width: 768px) {
+  .lightbox {
+    padding: 1.25rem 2.5rem 1.75rem;
+  }
+}
+.lightbox__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.lightbox__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  touch-action: pan-y;
+}
+.lightbox__figure {
+  display: grid;
+  place-items: center;
+  margin: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+.lightbox__img {
+  display: block;
+  max-width: min(100%, 1100px);
+  max-height: calc(100dvh - 13rem);
+  object-fit: contain;
+  user-select: none;
+}
+.lightbox__figure--badge .lightbox__img {
+  max-height: min(58dvh, 560px);
+}
+.lightbox__figure--certificate .lightbox__img {
+  outline: 1px solid var(--rule);
+  outline-offset: -1px;
+}
+.lightbox__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  translate: 0 -50%;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background-color: var(--panel);
+  color: var(--fg);
+  cursor: pointer;
+  transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+}
+.lightbox__arrow--prev { left: 0; }
+.lightbox__arrow--next { right: 0; }
+@media (hover: hover) {
+  .lightbox__arrow:hover {
+    background-color: var(--fill);
+    color: var(--fill-fg);
+  }
+}
+.lightbox__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}

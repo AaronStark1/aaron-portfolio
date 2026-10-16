@@ -159,13 +159,13 @@ Five tiles on a 15-column grid, each with its own tone (cream, ochre, ink, brick
 
 | # | Project | Live | Repo |
 |---|---|---|---|
-| 01 | **WoodWorld** · HTML, Tailwind | [netlify](https://aaron-furniture-website.netlify.app/) | — |
-| 02 | **Budget Calculator** · glass-neumorphic tracker | [netlify](https://aaron-budget-calculator.netlify.app/) | — |
-| 03 | **BMI Calculator** · front-end health classifier | [netlify](https://aaronbmicalculator.netlify.app/) | — |
+| 01 | **El Conceptz** · Next.js 16, GSAP, Tailwind v4 | — | [el-conceptz](https://github.com/AaronStark1/el-conceptz) |
+| 02 | **DEVentHub** · MERN, Stripe, Google OAuth | [vercel](https://deventhub-mern.vercel.app) | [deventhub-mern](https://github.com/AaronStark1/deventhub-mern) |
+| 03 | **SpecShield QA** · Mastra agents on local Gemma, Sentry tracing | [dev.to](https://dev.to/aaronstark1/specshield-qa-turning-nda-locked-specs-into-playwright-suites-with-local-gemma-mastra-and-sentry-3jp0) | [specshield-qa](https://github.com/AaronStark1/specshield-qa) |
 | 04 | **Simple Bank App** · vanilla JS, sessionStorage | [github.io](https://aaronstark1.github.io/ourbank-website/) | [ourbank-website](https://github.com/AaronStark1/ourbank-website) |
 | 05 | **Gotta Match 'Em All** · React, NES.css, PokéAPI | [netlify](https://pokemon-gotta-match-em-all.netlify.app/) | [gotta-match-em-all](https://github.com/AaronStark1/gotta-match-em-all) |
 
-<sub>TODO: repos for 01–03 are placeholders in `src/data/projects.js`.</sub>
+<sub>01 has no public deployment yet, so its tile opens the repository. 03 is a local-first app, so its tile opens the DEV write-up with the recorded demo.</sub>
 
 <details>
 <summary><b>Full-page captures</b></summary>
@@ -177,6 +177,27 @@ Five tiles on a 15-column grid, each with its own tone (cream, ochre, ink, brick
   </tr>
 </table>
 </details>
+
+<br />
+
+## Scene 05 — Proof of Progress
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/achievements-light.png" alt="Achievements page in light mode: Proof of Progress headline, serif statement beside four statistics, three featured badge tiles on cream, ochre and brick mattes, and an index of fourteen credentials with Badge, Certificate and Verify actions" width="100%" /></td>
+    <td width="50%"><img src=".github/assets/achievements-dark.png" alt="Achievements page in dark mode: the same composition on the charcoal sheet with cream type" width="100%" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><code>/achievements</code> · light</sub></td>
+    <td align="center"><sub><code>/achievements</code> · dark</sub></td>
+  </tr>
+</table>
+
+<br />
+
+`/achievements` is the credentials page: a two-line **Proof of / Progress** headline, a serif statement beside four numbers that are computed from the data (credentials, issuers, fields, year span), featured tiles that carry the official badge artwork on the cream / ochre / brick / ink mattes, and an index of every credential with its issue date, field and a **Verify** link to the issuing platform. Filters by field appear only once there are enough entries to need them.
+
+Badge images are the issuers' own artwork, stored under `public/achievements/badges/` with the source URL kept in the data; if one fails to load, a hairline **seal** with the issuer's initial takes its place so the composition never breaks. Each entry offers **Badge** and, where the platform publishes one, **Certificate**: both open a gallery that steps through that kind of artwork only, with arrow keys, swipes and a Download PDF action when the original is public (`public/achievements/certificates/`). The page ends with the Projects and Contact tiles, in the Home tones.
 
 <br />
 
@@ -243,13 +264,16 @@ aaron-portfolio/
 │   │   ├── TitleLines.jsx      # word → character split, mask reveal, hairline rule, kerning repair
 │   │   ├── NavCard.jsx         # tonal tile (cream / ochre / brick / ink) as button, Link or anchor
 │   │   ├── RevealLink.jsx      # CSS double-label slide link, NavLink-aware
+│   │   ├── Lightbox.jsx        # credential gallery: badges or certificates, keyboard, swipe, focus return
 │   │   ├── Navbar.jsx          # layoutId active underline, inverted mobile menu sheet
 │   │   └── ThemeToggle.jsx     # half-filled dot that turns over
 │   ├── context/                # ThemeContext + ThemeProvider (localStorage "theme")
-│   ├── data/projects.js        # the five tiles: title, description, image, live, github
-│   ├── pages/                  # Home · About · Projects · Contact · NotFound
-│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · notfound.css
+│   ├── data/                   # projects.js (the five tiles) · achievements.js (credentials, data only)
+│   ├── pages/                  # Home · About · Projects · Achievements · Contact · NotFound
+│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · achievements.css · notfound.css
 ├── public/projects/            # project1–5.png
+├── public/achievements/        # badges/ (official artwork, one per credential) · certificates/ (PNG view + PDF where public)
+├── public/_redirects           # Netlify SPA fallback so deep links and refreshes resolve
 └── .github/assets/             # the screenshots in this README
 ```
 

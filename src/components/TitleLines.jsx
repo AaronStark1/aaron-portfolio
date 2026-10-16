@@ -16,6 +16,10 @@ import { EASE, DUR, STAGGER } from "../lib/motion";
  * them into view with a stagger. TitleLine draws its hairline rule shortly after
  * the characters start. Under prefers-reduced-motion everything degrades to a
  * plain opacity fade. Split spans are aria-hidden behind a visually hidden copy.
+ *
+ * The display line-height (0.76) is tighter than the glyphs, so a line whose
+ * text has descenders (g j p q y) must pass `descenders` to TitleLine: the mask
+ * then keeps the tails visible and the rule sits beneath them.
  */
 
 const LinesCtx = createContext({ start: true });
@@ -119,12 +123,15 @@ export function TitleLine({
   innerClassName = "",
   ruleDelay,
   ruleClassName = "mt-[0.1em]",
+  descenders = false,
 }) {
   const reduce = useReducedMotion();
   const ref = useRef(null);
   const seen = useInView(ref, { once: true, amount: 0.3 });
   const { start: parentStart } = useContext(LinesCtx);
   const Tag = Motion[as] || Motion.div;
+  // Lines with g j p q y: the mask keeps the tails and the rule moves below them
+  const lineClass = descenders ? "title-line--descenders" : "";
 
   // explicit prop > in-view > parent start flag
   const go = start !== undefined ? start : inView ? seen : parentStart;
@@ -132,7 +139,7 @@ export function TitleLine({
 
   return (
     <LineCtx.Provider value={{ go, delay }}>
-      <Tag ref={ref} className={`relative ${className}`}>
+      <Tag ref={ref} className={`relative ${lineClass} ${className}`}>
         <span className={`relative ${innerClassName || "block"}`}>{children}</span>
         {rule && (
           <Motion.span
