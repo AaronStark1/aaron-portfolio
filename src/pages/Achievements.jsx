@@ -227,7 +227,7 @@ function ActionButton({ children, onClick, ariaLabel }) {
 /* Badge · Certificate · (links), used by both the featured captions and the index rows */
 function Actions({ credential, onOpen, className = "", children }) {
   return (
-    <ul className={`label m-0 flex list-none flex-wrap items-center gap-x-6 gap-y-3 p-0 ${className}`} aria-label={`${credential.title} actions`}>
+    <ul className={`cred-actions label m-0 flex list-none flex-wrap items-center gap-x-6 gap-y-3 p-0 ${className}`} aria-label={`${credential.title} actions`}>
       <li>
         <ActionButton onClick={() => onOpen("badge", credential.id)} ariaLabel={`View badge, ${credential.title}`}>
           Badge
@@ -390,7 +390,7 @@ function Archive({ all, onOpen }) {
 
       <Motion.ol
         key={filter}
-        className="m-0 mt-6 list-none border-t border-rule p-0 md:mt-8"
+        className="cred-index m-0 mt-6 list-none border-t border-rule p-0 md:mt-8"
         variants={riseParent(0.05, STAGGER.item)}
         initial="hidden"
         whileInView="visible"
@@ -403,7 +403,7 @@ function Archive({ all, onOpen }) {
             </span>
             <Badge credential={c} className="cred-row__thumb" />
             <div className="cred-row__main">
-              <h3 className="m-0 text-[length:var(--fs-body)] font-medium leading-[1.25] tracking-[-0.01em]">{c.title}</h3>
+              <h3 className="cred-row__title m-0 text-[length:var(--fs-body)] font-medium leading-[1.25] tracking-[-0.01em]">{c.title}</h3>
               <p className="label mt-1.5 text-fg-muted">{c.issuer}</p>
             </div>
             <div className="cred-row__meta label">

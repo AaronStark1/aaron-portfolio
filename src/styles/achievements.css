@@ -88,6 +88,8 @@
 /* Index row: number · thumbnail · title and issuer · date · field · verify.
    Date and field fold under the title on small screens. */
 .cred-row {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 2rem 3rem minmax(0, 1fr);
   grid-template-areas:
@@ -134,6 +136,101 @@
   .cred-row__actions { justify-self: end; }
 }
 
+/* Row interactions (hover devices only, mirrored for keyboard focus): a tinted
+   band settles in behind the row, the title eases right by the same 0.35em the
+   project titles use, the thumbnail grows a touch, the number comes forward,
+   and the other rows step back while one is in hand. */
+.cred-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 -0.75rem;
+  z-index: -1;
+  border-bottom-right-radius: 0.75rem;
+  background-color: color-mix(in srgb, var(--fg) 6%, transparent);
+  opacity: 0;
+  transform: scaleX(0.985);
+  transform-origin: left center;
+  transition: opacity 0.35s var(--ease-out), transform 0.6s var(--ease-out);
+}
+/* Dimming targets the row's children: Motion owns the row's own inline opacity. */
+.cred-row > * {
+  transition: opacity 0.45s var(--ease-out);
+}
+.cred-row__num {
+  transition: opacity 0.45s var(--ease-out), color 0.4s var(--ease-out);
+}
+.cred-row__title {
+  display: inline-block;
+  transition: transform 0.6s var(--ease-out);
+}
+.cred-row__thumb,
+.cred-row .cred-seal {
+  transform-origin: center;
+  transition: transform 0.6s var(--ease-out);
+}
+
+/* Action links: the arrow nudges up and out on its own link, a hairline draws
+   under whichever link is in hand, and the set brightens with its row. */
+.cred-actions {
+  transition: color 0.4s var(--ease-out);
+}
+.cred-actions li svg {
+  transition: transform 0.4s var(--ease-out);
+}
+.cred-actions .link-reveal::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.55;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s var(--ease-out);
+}
+
+@media (hover: hover) {
+  .cred-row:hover::before,
+  .cred-row:focus-within::before {
+    opacity: 1;
+    transform: none;
+  }
+  .cred-row:hover .cred-row__title,
+  .cred-row:focus-within .cred-row__title {
+    transform: translateX(0.35em);
+  }
+  .cred-row:hover .cred-row__thumb,
+  .cred-row:focus-within .cred-row__thumb,
+  .cred-row:hover .cred-seal,
+  .cred-row:focus-within .cred-seal {
+    transform: scale(1.08);
+  }
+  .cred-row:hover .cred-row__num,
+  .cred-row:focus-within .cred-row__num {
+    color: var(--fg);
+  }
+  .cred-row .cred-actions {
+    color: var(--fg-muted);
+  }
+  .cred-row:hover .cred-actions,
+  .cred-row:focus-within .cred-actions {
+    color: var(--fg);
+  }
+  .cred-index:hover .cred-row:not(:hover) > * {
+    opacity: 0.45;
+  }
+  .cred-actions li:hover svg,
+  .cred-actions li:focus-within svg {
+    transform: translate(0.18em, -0.18em);
+  }
+  .cred-actions .link-reveal:hover::before,
+  .cred-actions .link-reveal:focus-visible::before {
+    transform: scaleX(1);
+  }
+}
+
 /* Category filters: text buttons with a hairline that fills under the active one */
 .cred-filter {
   appearance: none;
@@ -156,8 +253,27 @@
 @media (prefers-reduced-motion: reduce) {
   .cred-tile__badge,
   .cred-tile__cta,
-  .cred-filter {
+  .cred-filter,
+  .cred-row > *,
+  .cred-row::before,
+  .cred-row__num,
+  .cred-row__title,
+  .cred-row__thumb,
+  .cred-row .cred-seal,
+  .cred-actions,
+  .cred-actions li svg,
+  .cred-actions .link-reveal::before {
     transition-duration: 0.01ms;
+  }
+  .cred-tile__badge,
+  .cred-tile__cta,
+  .cred-row__title,
+  .cred-row__thumb,
+  .cred-row .cred-seal,
+  .cred-actions li svg {
+    transform: none !important;
+  }
+  .cred-row::before {
     transform: none;
   }
   .cred-tile__cta {
