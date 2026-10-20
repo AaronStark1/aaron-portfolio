@@ -95,6 +95,12 @@ Every page renders inside one `Sheet` component: a rounded panel that enters wit
 
 <br />
 
+About ends with **Elsewhere**: six platform cards in the NavCard family (GitHub, LinkedIn, DEV, Discord, Spotify, Email), three across on desktop, two on tablets, one on phones. At rest they wear the site mattes; on hover or focus the platform's own colour rises from the bottom edge, the glyph lifts, the handle appears and a soft brand-tinted shadow settles under the tile. The marks are the platforms' official vectors (Simple Icons paths; LinkedIn's from Font Awesome, since Simple Icons no longer ships it), filled with the current text colour so they follow the wipe.
+
+Behind each card's furniture lives a **micro-world**: an SVG illustration, drawn in the platform's contrast colour with translucent fills for depth, that plays while the card is hovered or keyboard-focused and fades out cleanly when you leave. The card is the variant root (`rest` → `hover`, via Motion's `whileHover` / `whileFocus`), and every element in a scene simply declares those two states, so no React state or timers are involved and nothing runs while the card is idle. Each one has a dominant subject and its own motion personality: GitHub's terminal window types `git merge` and answers with a Git graph that branches, merges with a ripple and earns a "merged" tag; LinkedIn plots a constellation of profile nodes whose outer mesh closes while the hub pings and a "+1" lands; DEV's page types its heading, underlines it with a pen stroke and fills with body rules; Discord's controller (built on the Lucide gamepad outline) draws on, presses its buttons in rhythm, pops a "gg" bubble and catches a tumbling pixel die; Spotify's vinyl spins under a tonearm that swings in and drops, releasing notes over a quiet equalizer; Email's envelope opens, lifts out a letter that folds into a paper plane and flies off along a dotted arc, leaving a "1" badge. All six share one coordinate space, one stroke ladder and one fill opacity from `src/lib/worlds.js`; under reduced motion each collapses to a still tableau of at most five marks, and on touch devices, where there is no hover, that tableau is shown in the card's own ink so the illustrations are never lost.
+
+<br />
+
 ## Scene 03 — Editorial Typography & Dynamic Motion
 
 <table>
@@ -259,18 +265,22 @@ aaron-portfolio/
 │   ├── App.jsx                 # Router + AnimatePresence(mode="wait") around the routes
 │   ├── index.css               # Tailwind v4 import, palette, semantic tokens, type scale, 15-col grid, hover CSS
 │   ├── lib/motion.js           # EASE / DUR / STAGGER, rise & fade variants, intro scale, fonts-ready hook
+│   ├── lib/worlds.js           # micro-world vocabulary: shared viewBox, safe zones, draw/pop/rise/fade/quiet/dim builders
 │   ├── components/
 │   │   ├── Sheet.jsx           # the page sheet: enter/exit variants, `invert` prop, scroll reset
 │   │   ├── TitleLines.jsx      # word → character split, mask reveal, hairline rule, kerning repair
 │   │   ├── NavCard.jsx         # tonal tile (cream / ochre / brick / ink) as button, Link or anchor
 │   │   ├── RevealLink.jsx      # CSS double-label slide link, NavLink-aware
 │   │   ├── Lightbox.jsx        # credential gallery: badges or certificates, keyboard, swipe, focus return
+│   │   ├── SocialTile.jsx      # Elsewhere tile: site matte at rest, platform colour wipes up on hover
+│   │   ├── BrandIcons.jsx      # official platform marks as currentColor SVG paths (Simple Icons; LinkedIn via Font Awesome)
+│   │   ├── worlds/             # one hover scene per platform (GithubWorld … EmailWorld), World.jsx stage, registry by filename
 │   │   ├── Navbar.jsx          # layoutId active underline, inverted mobile menu sheet
 │   │   └── ThemeToggle.jsx     # half-filled dot that turns over
 │   ├── context/                # ThemeContext + ThemeProvider (localStorage "theme")
-│   ├── data/                   # projects.js (the five tiles) · achievements.js (credentials, data only)
+│   ├── data/                   # projects.js (the five tiles) · achievements.js (credentials) · socials.js (platform tiles)
 │   ├── pages/                  # Home · About · Projects · Achievements · Contact · NotFound
-│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · achievements.css · notfound.css
+│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · achievements.css · socials.css · notfound.css
 ├── public/projects/            # project1–5.png
 ├── public/achievements/        # badges/ (official artwork, one per credential) · certificates/ (PNG view + PDF where public)
 ├── public/_redirects           # Netlify SPA fallback so deep links and refreshes resolve
