@@ -327,8 +327,12 @@
   object-fit: contain;
   user-select: none;
 }
+/* Badges get an explicit height: SVG artwork with only a viewBox would otherwise
+   collapse to nothing inside the grid cell. */
 .lightbox__figure--badge .lightbox__img {
-  max-height: min(58dvh, 560px);
+  height: min(58dvh, 560px);
+  width: auto;
+  max-width: 100%;
 }
 .lightbox__figure--certificate .lightbox__img {
   outline: 1px solid var(--rule);
