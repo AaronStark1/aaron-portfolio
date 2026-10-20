@@ -2,7 +2,10 @@ import { useRef, useState } from "react";
 import { motion as Motion, useInView, useReducedMotion } from "motion/react";
 import Sheet from "../components/Sheet";
 import { TitleLines, TitleLine, TitleText } from "../components/TitleLines";
+import SocialTile from "../components/SocialTile";
 import { EASE, STAGGER, fadeChild, riseChild, riseParent, useFontsReady } from "../lib/motion";
+import { socials } from "../data/socials";
+import "../styles/socials.css";
 
 const PARAGRAPHS = [
   <>
@@ -98,7 +101,51 @@ export default function About() {
           <Facts go={proseDone} child={child} />
         </div>
       </div>
+
+      <Elsewhere child={child} />
     </Sheet>
+  );
+}
+
+/* Elsewhere: the platform tiles, drawn in once the section scrolls into view. */
+function Elsewhere({ child }) {
+  const ref = useRef(null);
+  const seen = useInView(ref, { once: true, amount: 0.25 });
+
+  return (
+    <section ref={ref} aria-labelledby="elsewhere-title" className="mt-[clamp(5rem,14vh,9rem)]">
+      <h2 id="elsewhere-title" className="sr-only">
+        Elsewhere
+      </h2>
+      <div aria-hidden="true">
+        <TitleLines font="sans" style={{ fontSize: "var(--fs-display-sm)" }}>
+          <TitleLine as="div" inView innerClassName="grid-15 items-end">
+            <TitleText col="1 / -1" align="right">
+              Elsewhere
+            </TitleText>
+          </TitleLine>
+        </TitleLines>
+      </div>
+
+      <div className="grid-15 mt-[clamp(2rem,5vh,3rem)] items-end gap-y-6">
+        <Motion.p
+          className="col-span-full m-0 max-w-[32ch] font-serif text-[length:var(--fs-statement)] font-normal leading-[1.2] tracking-[-0.01em] md:col-span-6"
+          variants={child}
+          initial="hidden"
+          animate={seen ? "visible" : "hidden"}
+        >
+          The same person, in the places where the work <em>actually happens</em>.
+        </Motion.p>
+      </div>
+
+      <ul className="m-0 mt-8 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2 lg:grid-cols-3" aria-label="Social profiles">
+        {socials.map((s, i) => (
+          <li key={s.id} className="min-w-0">
+            <SocialTile social={s} start={seen} delay={0.15 + i * STAGGER.card} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
