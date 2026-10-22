@@ -1,189 +1,181 @@
 import { motion as Motion } from "motion/react";
 import World from "./World";
-import { T0, t, exitT, fade, loop, breathe, resetAfterFade, draw, quiet } from "../../lib/worlds";
+import { Particle } from "./kit";
+import { rrect, circle } from "./shapes";
+import { C, R, W, LIFT, PHASE, T0, BOUNCE, fill, stroke, t, resetAfterFade, motionKit } from "../../lib/worlds";
 
-/* Discord — the gaming world. One big controller sits centre-right: its
-   outline draws on, the shell fills in, the d-pad, sticks and face buttons
-   pop into place. Then the signature: the buttons press in a quick rhythm,
-   a "gg" bubble pops up off the shell and a pixel die tumbles in and lands
-   beside the left grip. A pixel star twinkles and a pixel heart bobs. */
+/* Discord — the gamepad.
+   A   the pad lands with a small turn and a soft bounce; a die settles in
+       behind its left grip while the marks pop in around it;
+   B   a quick combo: the d-pad nudges, the four face buttons press in turn,
+       the right stick tilts, and a pixel heart pops off the pad;
+   C   the heart, the die and the marks drift at their own pace while the
+       right stick idles under an invisible thumb. */
 
-const OVER = [0.34, 1.56, 0.64, 1]; // spring-like overshoot
-
-/** Pops in with overshoot. Same shape as `pop`, bouncier. */
-const bounce = (delay = 0, { scale = 0.4, y = 0, duration = 0.55 } = {}) => ({
-  rest: { opacity: 0, scale, y, transition: resetAfterFade() },
-  hover: { opacity: 1, scale: 1, y: 0, transition: { opacity: t(delay, 0.15), default: t(delay, duration, OVER) } },
-});
-/** A leaf that simply follows its Motion parent's reveal. */
-const shown = { rest: { opacity: 0, transition: exitT() }, hover: { opacity: 1, transition: t(0, 0.05) } };
-
-/* Controller shell: lucide "gamepad-2" (ISC), 24-unit icon scaled ×7.4 so the
-   body is 148 wide. World = TX + S·x, TY + S·y. The stroke overlaps its own
-   start along the top edge so the dash-drawn outline closes cleanly. */
-const S = 7.4;
-const TX = 91.2;
-const TY = 37;
-const SHELL =
-  "M17.32 5H6.68a4 4 0 0 0-3.978 3.59l-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258q-.01-.075-.017-.151A4 4 0 0 0 17.32 5";
-const W = (x, y) => [TX + S * x, TY + S * y];
-
-/* Geometry helpers: everything is one path per fill style. */
-const circle = (cx, cy, r) => `M ${cx - r} ${cy} a ${r} ${r} 0 1 0 ${2 * r} 0 a ${r} ${r} 0 1 0 ${-2 * r} 0 z`;
-const pill = (cx, cy, w, h) => {
-  const r = h / 2;
-  return `M ${cx - w / 2 + r} ${cy - r} h ${w - h} a ${r} ${r} 0 0 1 0 ${h} h ${-(w - h)} a ${r} ${r} 0 0 1 0 ${-h} z`;
-};
-const plus = (cx, cy, L, w) => {
-  const h = w / 2;
-  const a = L - h;
-  return `M ${cx - h} ${cy - L} h ${w} v ${a} h ${a} v ${w} h ${-a} v ${a} h ${-w} v ${-a} h ${-a} v ${-w} h ${a} z`;
-};
-
-const [DX, DY] = W(8, 11); // d-pad centre
-const [LSX, LSY] = W(10.4, 14.6); // sticks
-const [RSX, RSY] = W(13.6, 14.6);
-const [P1X, PY] = W(11.3, 8.6); // start / select
-const [P2X] = W(12.7, 8.6);
-const [BX, BY] = W(17.2, 11); // face-button diamond
-const BR = 4.8;
-const BGAP = 11;
-const FACE = [
-  [BX - BGAP, BY, 0.45, [0.85]], // left
-  [BX, BY + BGAP, 0.49, [0.97, 1.21]], // down, tapped twice
-  [BX + BGAP, BY, 0.53, [1.09]], // right
-  [BX, BY - BGAP, 0.57, [1.33]], // up
+/* The pad: a symmetrical silhouette drawn on a 0.94 grid around (cx, top).
+   HALF is the right half as cubic segments; the left half mirrors it. */
+const PAD = { cx: 186, top: 73, k: 0.94 };
+const P = (x, y) => [PAD.cx + PAD.k * x, PAD.top + PAD.k * y];
+const HALF = [
+  [[68, 0], [82, 10], [86, 28]], // shoulder
+  [[90, 46], [96, 80], [94, 100]], // outer edge, flaring into the grip
+  [[92, 118], [72, 128], [58, 118]], // grip
+  [[47, 110], [40, 92], [28, 86]], // inner edge of the grip
 ];
-const CONTROLS = `${plus(DX, DY, 13, 8)} ${circle(LSX, LSY, 7.4)} ${circle(RSX, RSY, 7.4)} ${pill(P1X, PY, 7.5, 4)} ${pill(P2X, PY, 7.5, 4)}`;
-const STICK_CAPS = `${circle(LSX, LSY, 2.6)} ${circle(RSX, RSY, 2.6)}`;
-
-/** Face button: pops in, then presses (scale dip + overshoot) at each time. */
-const PRESS = 0.2;
-const button = (popAt, presses) => {
-  const total = presses[presses.length - 1] + PRESS - popAt;
-  const f = (s) => (s - popAt) / total;
-  const scale = [0.4, 1];
-  const times = [0, f(popAt + 0.35)];
-  const ease = [OVER];
-  for (const p of presses) {
-    scale.push(1, 0.5, 1);
-    times.push(f(p), f(p + 0.07), f(p + PRESS));
-    ease.push("linear", "easeIn", OVER);
-  }
-  return {
-    rest: { opacity: 0, scale: 0.4, transition: resetAfterFade() },
-    hover: { opacity: 1, scale, transition: { opacity: t(popAt, 0.15), scale: { ...t(popAt, total), times, ease } } },
+const padPath = (dy = 0) => {
+  const pt = ([x, y], s = 1) => {
+    const [px, py] = P(s * x, y);
+    return `${px.toFixed(1)} ${(py + dy).toFixed(1)}`;
   };
+  const ends = [[46, 0], ...HALF.map((c) => c[2])];
+  const right = HALF.map((c) => `C${c.map((p) => pt(p)).join(" ")}`).join("");
+  const left = HALF.map((c, k) => `C${pt(c[1], -1)} ${pt(c[0], -1)} ${pt(ends[k], -1)}`)
+    .reverse()
+    .join("");
+  return `M${pt([-46, 0])}L${pt([46, 0])}${right}C${pt([16, 80])} ${pt([-16, 80])} ${pt([-28, 86])}${left}Z`;
 };
+const padPivot = { transformBox: "view-box", originX: `${PAD.cx}px`, originY: `${P(0, 58)[1]}px` };
 
-/* Pixel art: cells are [col, row, width]; one path, nonzero union. */
-const pixels = (cells, p, ox, oy) => cells.map(([c, r, w]) => `M ${ox + c * p} ${oy + r * p} h ${w * p} v ${p} h ${-w * p} z`).join(" ");
-const STAR = [[2, 0, 1], [1, 1, 3], [0, 2, 5], [1, 3, 3], [2, 4, 1]];
-const HEART = [[1, 0, 2], [4, 0, 2], [0, 1, 7], [0, 2, 7], [1, 3, 5], [2, 4, 3], [3, 5, 1]];
-const star = (cx, cy, p) => pixels(STAR, p, cx - 2.5 * p, cy - 2.5 * p);
+const [DPAD, FACE, STICK_L, STICK_R] = [P(-50, 34), P(50, 34), P(-22, 62), P(22, 62)];
+const [GRIP_L, GRIP_R] = [P(-72, 126), P(72, 126)];
 
-/* Pixel die: stepped corners, face "5". */
-const DIE_X = 82;
-const DIE_Y = 176;
-const dieBody = (cx, cy, s, n) => {
-  const h = s / 2;
-  const e = s - 2 * n;
-  return `M ${cx - h + n} ${cy - h} h ${e} v ${n} h ${n} v ${e} h ${-n} v ${n} h ${-e} v ${-n} h ${-n} v ${-e} h ${n} z`;
+/* Face buttons in the order of the combo; the fuchsia one fires the heart. */
+const BUTTONS = [
+  { dx: -12, dy: 0, color: C.detail, at: 0.82 },
+  { dx: 0, dy: -12, color: C.a2, at: 0.92 },
+  { dx: 0, dy: 12, color: C.a1, at: 1.02 },
+  { dx: 12, dy: 0, color: C.a3, at: 1.14 },
+];
+
+/* D-pad: a plus with rounded arm ends. */
+const plus = ([cx, cy], h, a, r) =>
+  `M${cx - a} ${cy - h + r}A${r} ${r} 0 0 1 ${cx - a + r} ${cy - h}H${cx + a - r}A${r} ${r} 0 0 1 ${cx + a} ${cy - h + r}V${cy - a}H${cx + h - r}` +
+  `A${r} ${r} 0 0 1 ${cx + h} ${cy - a + r}V${cy + a - r}A${r} ${r} 0 0 1 ${cx + h - r} ${cy + a}H${cx + a}V${cy + h - r}A${r} ${r} 0 0 1 ${cx + a - r} ${cy + h}` +
+  `H${cx - a + r}A${r} ${r} 0 0 1 ${cx - a} ${cy + h - r}V${cy + a}H${cx - h + r}A${r} ${r} 0 0 1 ${cx - h} ${cy + a - r}V${cy - a + r}A${r} ${r} 0 0 1 ${cx - h + r} ${cy - a}H${cx - a}Z`;
+
+const pair = (a, b, r) => `${circle(a[0], a[1], r)}${circle(b[0], b[1], r)}`;
+
+/* Pixel heart, 7 × 6 cells of size u, from its top-left corner. */
+const HEART = { x: 246, y: 59, u: 5, at: 1.2 };
+const HC = { x: HEART.x + 3.5 * HEART.u, y: HEART.y + 3 * HEART.u };
+const pixelHeart = (u, dy = 0) =>
+  `M${u} ${dy}H${3 * u}V${u + dy}H${4 * u}V${dy}H${6 * u}V${u + dy}H${7 * u}V${3 * u + dy}H${6 * u}V${4 * u + dy}H${5 * u}V${5 * u + dy}H${4 * u}V${6 * u + dy}` +
+  `H${3 * u}V${5 * u + dy}H${2 * u}V${4 * u + dy}H${u}V${3 * u + dy}H0V${u + dy}H${u}Z`;
+const heartPivot = { transformBox: "view-box", originX: `${HC.x}px`, originY: `${HC.y}px` };
+
+/* Pop lines around the heart as it lands. */
+const ray = (deg, r1, r2) => {
+  const [c, s] = [Math.cos((deg * Math.PI) / 180), Math.sin((deg * Math.PI) / 180)];
+  return `M${(HC.x + r1 * c).toFixed(1)} ${(HC.y + r1 * s).toFixed(1)}L${(HC.x + r2 * c).toFixed(1)} ${(HC.y + r2 * s).toFixed(1)}`;
 };
-const PIP = 3.6;
-const DIE_PIPS = [[0, 0], [-5.5, -5.5], [5.5, -5.5], [-5.5, 5.5], [5.5, 5.5]]
-  .map(([dx, dy]) => `M ${DIE_X + dx - PIP / 2} ${DIE_Y + dy - PIP / 2} h ${PIP} v ${PIP} h ${-PIP} z`)
-  .join(" ");
+const RAYS = [-160, -115, -65, -20].map((a) => ray(a, 23, 29)).join("");
 
-const DIE_AT = 1.1;
-const DIE_DUR = 0.8;
-const tumble = {
-  rest: { opacity: 0, x: 12, y: -80, rotate: -270, transition: resetAfterFade() },
-  hover: {
-    opacity: 1,
-    x: 0,
-    rotate: 0,
-    y: [-80, 0, -16, 0, -4, 0],
-    transition: {
-      opacity: t(DIE_AT, 0.1),
-      x: { ...t(DIE_AT, DIE_DUR * 0.48), ease: "linear" },
-      rotate: { ...t(DIE_AT, DIE_DUR * 0.55), ease: "easeOut" },
-      y: { ...t(DIE_AT, DIE_DUR), times: [0, 0.48, 0.68, 0.84, 0.93, 1], ease: ["easeIn", "easeOut", "easeIn", "easeOut", "easeIn"] },
-    },
-  },
-};
-
-/** Pixel star: pops in, then blinks on a loop. */
-const twinkle = (delay, period) => ({
-  rest: { opacity: 0, scale: 0.3, transition: resetAfterFade() },
-  hover: {
-    opacity: [0, 1, 0.4, 1, 0.45, 1, 0],
-    scale: 1,
-    transition: {
-      opacity: loop(period, { delay: T0 + delay, times: [0, 0.06, 0.3, 0.5, 0.72, 0.92, 1], ease: "easeInOut" }),
-      scale: t(delay, 0.45, OVER),
-    },
-  },
-});
-
-const heart = {
-  rest: { opacity: 0, scale: 0.4, y: 0, transition: resetAfterFade() },
-  hover: {
-    opacity: 1,
-    scale: 1,
-    y: [0, -4],
-    transition: { opacity: t(0.8, 0.15), scale: t(0.8, 0.5, OVER), y: breathe(1.4, { delay: T0 + 1.3 }) },
-  },
-};
+/* Turned against the grip's edge so its corner tucks clearly behind it. */
+const DIE = { x: 83, y: 160, s: 30, turn: 18 };
+const BUMPERS = (dy = 0) => `${rrect(PAD.cx - 77, PAD.top - 6 + dy, 37, 14, 7)}${rrect(PAD.cx + 40, PAD.top - 6 + dy, 37, 14, 7)}`;
 
 export default function DiscordWorld({ reduce }) {
-  const v = (full, delay) => (reduce ? quiet(delay) : full);
-  const leaf = v(shown, 0);
+  const m = motionKit(reduce);
+  const snapHome = { delay: 0.26, duration: 0 };
+
+  const press = (at) =>
+    m.custom({
+      rest: { scale: 1, transition: snapHome },
+      hover: { scale: [1, 0.66, 1.16, 1], transition: { delay: T0 + at, duration: 0.4, times: [0, 0.3, 0.7, 1], ease: "easeInOut" } },
+    });
+
+  const nudge = m.custom({
+    rest: { x: 0, y: 0, transition: snapHome },
+    hover: { x: [0, -2.5, 0, 0, 0], y: [0, 0, 0, 2.5, 0], transition: { delay: T0 + PHASE.B, duration: 0.55, times: [0, 0.22, 0.45, 0.7, 1], ease: "easeInOut" } },
+  });
+
+  const tilt = m.custom({
+    rest: { x: 0, y: 0, transition: snapHome },
+    hover: { x: [0, 3, 3, -2, 0], y: [0, -2.5, -2.5, 1.5, 0], transition: { delay: T0 + 0.9, duration: 0.8, times: [0, 0.2, 0.5, 0.75, 1], ease: "easeInOut" } },
+  });
+
+  const heartPop = m.custom(
+    {
+      rest: { opacity: 0, x: -16, y: 32, scale: 0.3, rotate: -20, transition: resetAfterFade() },
+      hover: { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0, transition: { opacity: t(HEART.at, 0.1), default: t(HEART.at, 0.5, BOUNCE) } },
+    },
+    0.3
+  );
+
+  const burst = m.transient({
+    rest: { opacity: 0, scale: 0.6, transition: resetAfterFade() },
+    hover: { opacity: [0, 1, 1, 0], scale: [0.6, 1, 1.12, 1.22], transition: { delay: T0 + HEART.at + 0.2, duration: 0.6, times: [0, 0.25, 0.7, 1], ease: "easeOut" } },
+  });
+
+  const u = HEART.u;
 
   return (
     <World>
-      {/* controller shell: the outline draws on, then the body fills */}
-      <g transform={`translate(${TX} ${TY}) scale(${S})`} strokeWidth={3 / S}>
-        <Motion.path d={`${SHELL}z`} fill="currentColor" fillOpacity={0.14} stroke="none" variants={v(fade(0.4, 0.4), 0)} />
-        <Motion.path d={`${SHELL}H14`} variants={v(draw(0, 0.6), 0)} />
+      <defs>
+        <clipPath id="discord-pad">
+          <path d={padPath()} />
+        </clipPath>
+      </defs>
+
+      {/* Die, behind the left grip */}
+      <g transform={`translate(${DIE.x} ${DIE.y})`}>
+        <Motion.g variants={m.pop(0.3, { scale: 0.4, rotate: -30, y: 8 })}>
+          <Motion.g variants={m.float({ amp: 3, period: 4.0, tilt: 4 })}>
+            {/* shadow drops straight down on screen, not along the die's turn */}
+            <path d={rrect(-DIE.s / 2, -DIE.s / 2, DIE.s, DIE.s, R.md)} transform={`translate(0 ${LIFT.prop}) rotate(${DIE.turn})`} style={fill(C.shade)} />
+            <g transform={`rotate(${DIE.turn})`}>
+              <rect x={-DIE.s / 2} y={-DIE.s / 2} width={DIE.s} height={DIE.s} rx={R.md} style={fill(C.surface)} />
+              <path d={`${circle(-6, -6, 2.6)}${circle(0, 0, 2.6)}${circle(6, 6, 2.6)}`} style={fill(C.detail)} />
+            </g>
+          </Motion.g>
+        </Motion.g>
       </g>
 
-      {/* controls: d-pad, sticks, start/select (and the face buttons when reduced) */}
-      <Motion.g variants={v(bounce(0.5, { scale: 0.6, duration: 0.5 }), 0.1)}>
-        <Motion.path d={reduce ? `${CONTROLS} ${FACE.map(([cx, cy]) => circle(cx, cy, BR)).join(" ")}` : CONTROLS} fill="currentColor" fillOpacity={0.14} variants={leaf} />
-        <Motion.path d={STICK_CAPS} fill="currentColor" stroke="none" variants={leaf} />
-      </Motion.g>
-      {!reduce &&
-        FACE.map(([cx, cy, popAt, presses]) => (
-          <Motion.circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={BR} fill="currentColor" fillOpacity={0.14} variants={button(popAt, presses)} />
+      {/* The gamepad: bumpers, shadow, body, grip caps, wells, controls */}
+      <Motion.g variants={m.enter(0, { rotate: -8, y: 18, scale: 0.9, duration: 0.65 })} style={padPivot}>
+        <path d={`${padPath(LIFT.hero)}${BUMPERS(LIFT.hero)}`} style={fill(C.shade)} />
+        <path d={BUMPERS()} style={fill(C.surface2)} />
+        <path d={padPath()} style={fill(C.surface)} />
+        <path d={pair(GRIP_L, GRIP_R, 28)} clipPath="url(#discord-pad)" style={fill(C.surface2)} />
+        <path d={pair(DPAD, FACE, 21)} style={fill(C.surface2)} />
+        <path d={pair(STICK_L, STICK_R, 13)} style={fill(C.surface2)} />
+        <path d={`${rrect(PAD.cx - 16, PAD.top + 18, 11, 6, 3)}${rrect(PAD.cx + 5, PAD.top + 18, 11, 6, 3)}`} style={fill(C.detail, 0.4)} />
+
+        <Motion.path d={plus(DPAD, 15, 5, R.sm)} variants={nudge} style={fill(C.detail)} />
+
+        {BUTTONS.map((b) => (
+          <Motion.circle key={b.at} cx={FACE[0] + b.dx} cy={FACE[1] + b.dy} r="6" variants={press(b.at)} style={fill(b.color)} />
         ))}
 
-      {/* "gg" pops up off the shell once the rhythm lands */}
-      {!reduce && (
-        <Motion.g variants={bounce(1.35, { scale: 0.5, y: 6 })}>
-          <Motion.path
-            d="M 198 45 h 42 q 4 0 4 4 v 16 q 0 4 -4 4 h -24 l -6 7 l -1 -7 h -11 q -4 0 -4 -4 v -16 q 0 -4 4 -4 z"
-            fill="currentColor"
-            fillOpacity={0.14}
-            variants={shown}
-          />
-          <Motion.text x="213" y="62.5" fontSize="13" fontWeight="700" variants={shown}>
-            gg
-          </Motion.text>
+        {/* Left stick holds; the right one tilts in the combo, then idles */}
+        <circle cx={STICK_L[0]} cy={STICK_L[1]} r="9.5" style={fill(C.detail)} />
+        <circle cx={STICK_L[0]} cy={STICK_L[1]} r="5" style={stroke(C.surface, W.fine, 0.22)} />
+        <Motion.g variants={tilt}>
+          <Motion.g variants={m.float({ amp: 2, sway: 2, period: 3.4 })}>
+            <circle cx={STICK_R[0]} cy={STICK_R[1]} r="9.5" style={fill(C.detail)} />
+            <circle cx={STICK_R[0]} cy={STICK_R[1]} r="5" style={stroke(C.surface, W.fine, 0.22)} />
+          </Motion.g>
         </Motion.g>
-      )}
-
-      {/* pixel heart off the right shoulder */}
-      {!reduce && <Motion.path d={pixels(HEART, 2.4, 257.6, 84.8)} fill="currentColor" stroke="none" variants={heart} />}
-
-      {/* pixel star in the band under the glyph */}
-      <Motion.path d={star(40, 118, 3.5)} fill="currentColor" stroke="none" variants={v(twinkle(0.65, 2.5), 0.2)} />
-
-      {/* the die tumbles in and lands beside the left grip */}
-      <Motion.g variants={v(tumble, 0.3)}>
-        <Motion.path d={dieBody(DIE_X, DIE_Y, 22, 2.5)} fill="currentColor" fillOpacity={0.14} variants={leaf} />
-        <Motion.path d={DIE_PIPS} fill="currentColor" stroke="none" variants={leaf} />
       </Motion.g>
+
+      {/* Payoff: a pixel heart pops off the pad and lands on its shoulder */}
+      <Motion.path d={RAYS} variants={burst} style={{ ...stroke(C.line, W.line), ...heartPivot }} />
+      <g transform={`translate(${HEART.x} ${HEART.y})`}>
+        <Motion.g variants={heartPop}>
+          <Motion.g variants={m.float({ amp: 4, period: 3.6 })}>
+            <path d={pixelHeart(u, LIFT.prop)} style={fill(C.shade)} />
+            <path d={pixelHeart(u)} style={fill(C.a3)} />
+            <rect x={u} y={u} width={u} height={u} style={fill(C.surface)} />
+          </Motion.g>
+        </Motion.g>
+      </g>
+
+      {/* Supporting marks: one family, varied motion */}
+      <Particle m={m} glyph="smiley" x={46} y={110} size={26} color={C.line} enter={0.4} amp={4} period={3.8} tilt={6} />
+      <Particle m={m} glyph="triangle" x={34} y={168} size={12} color={C.line} enter={0.55} motion="spin" period={4.2} />
+      <Particle m={m} glyph="ring" x={122} y={48} size={12} color={C.a1} enter={0.5} amp={3} period={2.6} sway={2} />
+      <Particle m={m} glyph="bolt" x={196} y={46} size={16} color={C.a2} enter={0.62} motion="pulse" period={2.8} />
+      <Particle m={m} glyph="plus" x={284} y={194} size={13} color={C.line} enter={0.7} amp={3} period={3.2} sway={-2} />
     </World>
   );
 }

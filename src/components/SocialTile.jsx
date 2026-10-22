@@ -17,8 +17,14 @@ import { EASE, DUR, useMediaQuery } from "../lib/motion";
 export default function SocialTile({ social, start = true, delay = 0, className = "" }) {
   const reduce = useReducedMotion();
   const touch = useMediaQuery("(hover: none)");
+  // The illustration's palette; on touch devices the stylesheet remaps it to the card's ink instead.
+  const style = {
+    "--brand": social.brand,
+    "--brand-fg": social.brandFg,
+    ...(touch ? {} : Object.fromEntries(Object.entries(social.palette || {}).map(([k, v]) => [`--w-${k === "surface2" ? "surface-2" : k}`, v]))),
+  };
   const external = /^https?:/.test(social.href || "");
-  const style = { "--brand": social.brand, "--brand-fg": social.brandFg };
+
   const Scene = worlds[social.id];
 
   const content = (

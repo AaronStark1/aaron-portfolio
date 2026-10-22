@@ -1,9 +1,10 @@
 import { WORLD_VIEW } from "../../lib/worlds";
 
 /**
- * The stage every social world is drawn on. Sits under the tile's furniture,
- * ignores the pointer, and is purely decorative: the tile already carries the
- * accessible name. Variant labels ("rest"/"hover") flow down from the tile.
+ * The stage every social world is drawn on. Sits under the card's furniture,
+ * ignores the pointer, and is purely decorative: the card already carries
+ * the accessible name. Variant labels ("rest"/"hover") flow down from the
+ * card. Nothing is painted by default; every shape names its palette role.
  */
 export default function World({ children, className = "" }) {
   return (
@@ -14,8 +15,7 @@ export default function World({ children, className = "" }) {
       aria-hidden="true"
       focusable="false"
       fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
+      stroke="none"
       strokeLinecap="round"
       strokeLinejoin="round"
     >

@@ -1,145 +1,114 @@
 import { motion as Motion } from "motion/react";
 import World from "./World";
-import { T0, t, dim, draw, loop, breathe, pop, quiet, resetAfterFade } from "../../lib/worlds";
+import { Particle, Emitter } from "./kit";
+import { rrect, circle } from "./shapes";
+import { C, R, W, LIFT, PHASE, T0, fill, stroke, loop, motionKit } from "../../lib/worlds";
+import { EASE } from "../../lib/motion";
 
-/* Spotify: the turntable.
-   Storyboard — a big vinyl record pops in centre-right and starts turning
-   (its sheen and label print show the spin); the equalizer under the glyph
-   wakes and keeps time. The tonearm appears parked beside the platter, swings
-   in over the grooves and drops with a soft settle (the signature, ~1.3 s).
-   As the stylus lands, three notes are released from the record's left edge
-   and drift up into the open air between glyph and disc, settling faint, while
-   two sound-wave arcs draw themselves off the lower-right rim. The record keeps
-   turning and the bars keep time for as long as the pointer stays. */
+/* Spotify — the record.
+   A   the sleeve lands with a slight turn, the record slides out of it and
+       the equalizer under the glyph rises bar by bar;
+   B   the record spins up to speed and the equalizer starts keeping time;
+   C   notes are released from the rim again and again while headphones and
+       a few marks drift around the scene. */
 
-const C = { x: 186, y: 132 }; // platter centre
-const R = 72; // platter radius
-const PIVOT = { x: 271, y: 60 }; // tonearm bearing (parked counterweight stays inside SAFE)
-const BASE = 186; // equalizer baseline
-/* Plain marks inside a Motion group take the group's opacity, so they read as
-   hidden at rest (the group's fade is squared, which is imperceptible). */
-const kid = { opacity: "inherit" };
+const SLEEVE = { x: 92, y: 80, s: 96 }; // 96 × 96, turned -6° about its centre
+const SC = { x: SLEEVE.x + SLEEVE.s / 2, y: SLEEVE.y + SLEEVE.s / 2 };
+const DISC = { x: 214, y: 128, r: 64 };
+const pivot = { transformBox: "view-box", originX: `${DISC.x}px`, originY: `${DISC.y}px` };
 
-const rad = (deg) => (deg * Math.PI) / 180;
-const pt = (r, deg) => [(C.x + r * Math.cos(rad(deg))).toFixed(1), (C.y + r * Math.sin(rad(deg))).toFixed(1)];
-/* Arc of the platter's circle, from angle a1 to a2 (degrees, clockwise from 3 o'clock). */
+/* Arc of the disc, from angle a1 to a2 (degrees clockwise from 3 o'clock). */
 const arc = (r, a1, a2) => {
-  const [x1, y1] = pt(r, a1);
-  const [x2, y2] = pt(r, a2);
-  return `M${x1} ${y1} A${r} ${r} 0 ${a2 - a1 > 180 ? 1 : 0} 1 ${x2} ${y2}`;
+  const p = (a) => [DISC.x + r * Math.cos((a * Math.PI) / 180), DISC.y + r * Math.sin((a * Math.PI) / 180)].map((n) => n.toFixed(1)).join(" ");
+  return `M${p(a1)}A${r} ${r} 0 0 1 ${p(a2)}`;
 };
 
-/* Equalizer: six pill bars in two interleaved sets so the rhythm is syncopated. */
-const barsPath = (set) => set.map(([x, h]) => `M${x} ${BASE} v${-h}`).join(" ");
-const BARS_A = [
-  [24, 26],
-  [48, 48],
-  [72, 32],
-];
-const BARS_B = [
-  [36, 40],
-  [60, 22],
-  [84, 44],
-];
+/* Equalizer: five bars on a shared baseline under the glyph. */
+const EQ = { x: 20, base: 204, w: 9, gap: 5, h: [30, 48, 36, 56, 26] };
+const EQ_TEMPO = [1.15, 0.9, 1.3, 1.0, 1.2];
 
-/* Notes: where each sits on the record's left edge, how far it drifts, and when. */
-const NOTES = [
-  { at: [120, 100], to: [-26, -32], delay: 1.15, tilt: -12 },
-  { at: [138, 84], to: [-18, -42], delay: 1.3, tilt: 10 },
-  { at: [122, 134], to: [-22, -24], delay: 1.45, tilt: -8 },
-];
-
-/* Platter group: pops in with the rim, then turns forever (linear, so the loop has no seam). */
-const platter = {
-  rest: { opacity: 0, scale: 0.8, rotate: 0, transition: resetAfterFade() },
-  hover: {
-    opacity: 1,
-    scale: 1,
-    rotate: 360,
-    transition: { opacity: t(0.08, 0.2), scale: t(0.08, 0.5), rotate: loop(7, { delay: T0 + 0.08 }) },
-  },
-};
-
-/* Tonearm: appears parked beside the record, swings in, overshoots a touch and settles on the groove. */
-const arm = {
-  rest: { opacity: 0, rotate: 45, transition: resetAfterFade() },
-  hover: {
-    opacity: 1,
-    rotate: [45, -2.5, 0],
-    transition: { opacity: t(0.35, 0.2), rotate: { ...t(0.6, 0.72), times: [0, 0.76, 1], ease: ["easeInOut", "easeOut"] } },
-  },
-};
-
-/* Equalizer set: rises from the baseline and keeps pulsing at its own tempo. */
-const bars = (delay, period, to) => ({
-  rest: { opacity: 0, scaleY: 0.4, transition: resetAfterFade() },
-  hover: { opacity: to, scaleY: [0.45, 1], transition: { opacity: t(delay, 0.25), scaleY: breathe(period, { delay: T0 + delay }) } },
-});
-
-/* A note released from the record: pops, drifts up and away, then rests faint. */
-const note = ({ to: [dx, dy], delay, tilt }) => ({
-  rest: { opacity: 0, x: 0, y: 0, rotate: tilt, scale: 0.5, transition: resetAfterFade() },
-  hover: {
-    opacity: [0, 1, 1, 0.7], // children inherit the group opacity, so this renders ~0.5
-    x: [0, dx],
-    y: [0, dy],
-    rotate: [tilt, -tilt * 0.6],
-    scale: 1,
-    transition: { default: t(delay, 1.0), scale: t(delay, 0.3) },
-  },
-});
+/* Spin-up: the outer group accelerates through 120° and leaves at the loop's
+   speed (the curve ends with slope 1), the inner group then turns forever. */
+const SPIN_UP = 0.9;
+const SPIN_PERIOD = (360 * SPIN_UP) / 120;
 
 export default function SpotifyWorld({ reduce }) {
-  const v = (full, delay) => (reduce ? quiet(delay) : full);
-  const sets = reduce ? [[BARS_A.concat(BARS_B), 0.15, 0.6, 0.5]] : [[BARS_A, 0.15, 0.6, 0.55], [BARS_B, 0.25, 0.78, 0.45]];
+  const m = motionKit(reduce);
+
+  const spinUp = m.custom({
+    rest: { rotate: 0, transition: { delay: 0.26, duration: 0 } },
+    hover: { rotate: 120, transition: t2(PHASE.B, SPIN_UP) },
+  });
+  const spinOn = reduce ? undefined : m.spin({ at: PHASE.B + SPIN_UP, period: SPIN_PERIOD });
+
+  const eqPulse = (i) =>
+    reduce
+      ? undefined
+      : {
+          rest: { scaleY: 1, transition: { delay: 0.26, duration: 0 } },
+          hover: {
+            scaleY: [1, 0.42, 0.86, 0.55, 1],
+            transition: loop(EQ_TEMPO[i], { delay: T0 + PHASE.B + 0.25 + i * 0.07, ease: "easeInOut", times: [0, 0.3, 0.55, 0.8, 1] }),
+          },
+        };
 
   return (
     <World>
-      {/* Equalizer, in the band under the glyph */}
-      {sets.map(([set, delay, period, to]) => (
-        <Motion.path key={set[0][0]} d={barsPath(set)} strokeWidth="7" variants={reduce ? dim(quiet(delay), to) : bars(delay, period, to)} style={{ originY: 1 }} />
-      ))}
+      {/* Equalizer, under the glyph */}
+      {EQ.h.map((h, i) => {
+        const x = EQ.x + i * (EQ.w + EQ.gap);
+        return (
+          <Motion.g key={x} variants={m.grow(0.3 + i * 0.06, { axis: "y", duration: 0.45 })} style={{ originY: 1 }}>
+            <Motion.rect x={x} y={EQ.base - h} width={EQ.w} height={h} rx={EQ.w / 2} style={{ ...fill(C.line), originY: 1 }} variants={eqPulse(i)} />
+          </Motion.g>
+        );
+      })}
 
-      {/* Platter rim and translucent disc */}
-      <Motion.circle cx={C.x} cy={C.y} r={R} strokeWidth="3" fill="currentColor" fillOpacity="0.12" variants={v(pop(0, { scale: 0.8, duration: 0.55 }), 0)} />
+      {/* Sleeve, behind the record */}
+      <g transform={`rotate(-6 ${SC.x} ${SC.y})`}>
+        <Motion.g variants={m.enter(0, { rotate: -8, y: 16 })}>
+          <path d={rrect(SLEEVE.x, SLEEVE.y + LIFT.prop, SLEEVE.s, SLEEVE.s, R.md)} style={fill(C.shade)} />
+          <rect x={SLEEVE.x} y={SLEEVE.y} width={SLEEVE.s} height={SLEEVE.s} rx={R.md} style={fill(C.a2)} />
+          <circle cx={SLEEVE.x + 30} cy={SLEEVE.y + 30} r="16" style={fill(C.a3)} />
+          <rect x={SLEEVE.x + 12} y={SLEEVE.y + 66} width="44" height="6" rx="3" style={fill(C.surface)} />
+          <rect x={SLEEVE.x + 12} y={SLEEVE.y + 78} width="28" height="6" rx="3" style={fill(C.a1)} />
+        </Motion.g>
+      </g>
 
-      {/* Everything that turns: sheen, grooves, label, spindle */}
-      <Motion.g variants={v(platter, 0.1)} style={{ transformBox: "view-box", originX: `${C.x}px`, originY: `${C.y}px` }}>
-        <path d={`${arc(52, 196, 254)} ${arc(52, 16, 74)}`} strokeWidth="22" strokeOpacity="0.1" strokeLinecap="butt" style={kid} />
-        <circle cx={C.x} cy={C.y} r="62" strokeWidth="1.5" strokeOpacity="0.35" style={kid} />
-        <circle cx={C.x} cy={C.y} r="54" strokeWidth="1.5" strokeOpacity="0.35" style={kid} />
-        <circle cx={C.x} cy={C.y} r="46" strokeWidth="1.5" strokeOpacity="0.35" style={kid} />
-        <circle cx={C.x} cy={C.y} r="24" strokeWidth="2" fill="currentColor" fillOpacity="0.2" style={kid} />
-        <path d={arc(15.5, 200, 300)} strokeWidth="2" style={kid} />
-        <circle cx={pt(15.5, 60)[0]} cy={pt(15.5, 60)[1]} r="2.2" fill="currentColor" stroke="none" style={kid} />
-        <circle cx={C.x} cy={C.y} r="3.5" fill="currentColor" stroke="none" style={kid} />
+      {/* The record: slides out of the sleeve, then spins */}
+      <Motion.g variants={m.enter(0.15, { x: -62, y: 0, scale: 0.96, duration: 0.75, ease: EASE })}>
+        <circle cx={DISC.x} cy={DISC.y + LIFT.hero} r={DISC.r} style={fill(C.shade)} />
+        <circle cx={DISC.x} cy={DISC.y} r={DISC.r} style={fill(C.surface)} />
+        <Motion.g variants={spinUp} style={pivot}>
+          <Motion.g variants={spinOn} style={pivot}>
+            {/* sheen: two short highlights that show the turn */}
+            <path d={`${arc(51, 205, 240)} ${arc(41, 212, 236)} ${arc(51, 25, 60)} ${arc(41, 32, 56)}`} style={stroke(C.detail, W.line, 0.22)} />
+            {[56, 46, 36].map((r) => (
+              <circle key={r} cx={DISC.x} cy={DISC.y} r={r} style={stroke(C.surface2, W.fine)} />
+            ))}
+            <circle cx={DISC.x} cy={DISC.y} r="22" style={fill(C.a3)} />
+            <circle cx={DISC.x} cy={DISC.y} r="14" style={stroke(C.surface, W.fine, 0.18)} />
+            <circle cx={DISC.x + 9} cy={DISC.y - 11} r="3" style={fill(C.a1)} />
+            <path d={circle(DISC.x, DISC.y, 3.5)} style={fill(C.surface)} />
+          </Motion.g>
+        </Motion.g>
       </Motion.g>
 
-      {/* Tonearm, swinging about its bearing */}
-      <Motion.g variants={v(arm, 0.2)} style={{ transformBox: "view-box", originX: `${PIVOT.x}px`, originY: `${PIVOT.y}px` }}>
-        <path d={`M${PIVOT.x} ${PIVOT.y} L244 92`} strokeWidth="3" style={kid} />
-        <path d="M244 92 L237.5 99" strokeWidth="7" style={kid} />
-        <path d="M236.5 100.5 l-2.5 2.5" strokeWidth="1.5" style={kid} />
-        <path d={`M${PIVOT.x} ${PIVOT.y} l7 -7.5`} strokeWidth="3" style={kid} />
-        <circle cx={PIVOT.x + 8.5} cy={PIVOT.y - 9} r="4" fill="currentColor" stroke="none" style={kid} />
-        <circle cx={PIVOT.x} cy={PIVOT.y} r="6" strokeWidth="2" fill="currentColor" fillOpacity="0.18" style={kid} />
-      </Motion.g>
+      {/* Phase C: notes released from the rim, again and again */}
+      <Emitter m={m} glyph="note" x={168} y={86} size={20} color={C.a1} at={PHASE.C - 0.4} dx={-42} dy={-30} rotate={-14} period={2.6} wait={1.6} />
+      <Emitter m={m} glyph="note" x={186} y={72} size={18} color={C.line} at={PHASE.C + 0.9} dx={-14} dy={-36} rotate={10} period={2.4} wait={1.9} />
 
-      {/* Sound-wave arcs off the lower-right rim */}
-      {!reduce && <Motion.path d={arc(82, 18, 58)} strokeWidth="2" variants={dim(draw(1.2, 0.5), 0.5)} />}
-      {!reduce && <Motion.path d={arc(92, 22, 56)} strokeWidth="1.5" variants={dim(draw(1.35, 0.5), 0.35)} />}
-
-      {/* Notes released from the record */}
-      {!reduce &&
-        NOTES.map((n) => {
-          const [x, y] = n.at;
-          return (
-            <Motion.g key={n.at.join()} variants={note(n)}>
-              <ellipse cx={x} cy={y} rx="4.6" ry="3.3" transform={`rotate(-25 ${x} ${y})`} fill="currentColor" stroke="none" style={kid} />
-              <path d={`M${x + 3.4} ${y - 1} V${y - 19} c4.8 1.3 7.6 4.6 6.3 9.8`} strokeWidth="2" style={kid} />
-            </Motion.g>
-          );
-        })}
+      {/* Supporting particles: one family, varied motion */}
+      <Particle m={m} glyph="headphones" x={46} y={114} size={30} color={C.a1} enter={0.5} amp={4} period={3.8} tilt={5} />
+      <Particle m={m} glyph="notes" x={262} y={56} size={22} color={C.line} enter={0.62} amp={5} period={3.2} tilt={6} />
+      <Particle m={m} glyph="spark" x={98} y={206} size={14} color={C.a3} enter={0.8} motion="twinkle" period={2.2} />
+      <Particle m={m} glyph="ring" x={282} y={192} size={12} color={C.line} enter={0.86} amp={3} period={3.4} />
+      <Particle m={m} glyph="dot" x={140} y={44} size={9} color={C.a2} enter={0.9} amp={3} period={2.6} sway={2} />
     </World>
   );
+}
+
+/* Spin-up timing: starts from rest, leaves at constant speed. */
+function t2(at, duration) {
+  return { delay: T0 + at, duration, ease: [0.6, 0, 0.8, 0.8] };
 }

@@ -54,8 +54,19 @@
   color: var(--brand-fg);
   pointer-events: none;
 }
-/* No hover on touch devices: the still tableau sits in the card's own ink */
+/* No hover on touch devices: the still tableau sits on the matte in the
+   card's own ink, every palette role remapped to tints of it. */
 @media (hover: none) {
+  .social-tile {
+    --w-surface: color-mix(in srgb, var(--card-fg) 10%, var(--card-bg));
+    --w-surface-2: color-mix(in srgb, var(--card-fg) 22%, var(--card-bg));
+    --w-detail: var(--card-fg);
+    --w-shade: color-mix(in srgb, var(--card-fg) 9%, transparent);
+    --w-line: var(--card-fg);
+    --w-a1: color-mix(in srgb, var(--card-fg) 70%, var(--card-bg));
+    --w-a2: color-mix(in srgb, var(--card-fg) 45%, var(--card-bg));
+    --w-a3: color-mix(in srgb, var(--card-fg) 30%, var(--card-bg));
+  }
   .social-world {
     color: var(--card-fg);
   }
@@ -64,6 +75,9 @@
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   fill: currentColor;
   stroke: none;
+}
+.social-world .w-sans {
+  font-family: var(--font-sans, "Instrument Sans Variable", system-ui, sans-serif);
 }
 
 /* The wipe: brand colour, scaled up from the bottom edge */
