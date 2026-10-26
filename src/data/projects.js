@@ -6,6 +6,8 @@ export const projectsData = [
         image: "/projects/project1.png",
         live: "https://github.com/AaronStark1/el-conceptz",
         github: "https://github.com/AaronStark1/el-conceptz",
+        video: "/projects/showcase/el-conceptz-showreel.mp4",
+        poster: "/projects/showcase/el-conceptz-showreel-poster.jpg",
     },
     {
         id: 2,
@@ -22,6 +24,8 @@ export const projectsData = [
         image: "/projects/project3.png",
         live: "https://dev.to/aaronstark1/specshield-qa-turning-nda-locked-specs-into-playwright-suites-with-local-gemma-mastra-and-sentry-3jp0",
         github: "https://github.com/AaronStark1/specshield-qa",
+        video: "/projects/showcase/specshield-showreel.mp4",
+        poster: "/projects/showcase/specshield-showreel-poster.jpg",
     },
     {
         id: 4,
@@ -30,6 +34,8 @@ export const projectsData = [
         image: "/projects/project4.png",
         live: "https://aaronstark1.github.io/ourbank-website/",
         github: "https://github.com/AaronStark1/ourbank-website",
+        video: "/projects/showcase/banking-app-showcase.mp4",
+        poster: "/projects/showcase/banking-app-poster.webp",
     },
     {
         id: 5,

@@ -1,9 +1,12 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion as Motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
-import { ArrowUpRight } from "@phosphor-icons/react";
+import { ArrowUpRight, Pause, Play } from "@phosphor-icons/react";
 import Sheet from "../components/Sheet";
 import RevealLink from "../components/RevealLink";
+import ShowcaseModal from "../components/ShowcaseModal";
 import { TitleLine, TitleText } from "../components/TitleLines";
 import { EASE, fadeChild, riseChild, useFontsReady, useMediaQuery } from "../lib/motion";
+import { claimPreview, stopPreviews } from "../lib/showcase";
 import { projectsData } from "../data/projects";
 import "../styles/projects.css";
 
@@ -29,6 +32,9 @@ const SPRING = { stiffness: 420, damping: 38, mass: 0.6 };
 
 export default function Projects() {
   const ready = useFontsReady();
+  const [showcase, setShowcase] = useState(null);
+  const openShowcase = useCallback((project, index, trigger) => setShowcase({ project, index, trigger }), []);
+  const closeShowcase = useCallback(() => setShowcase(null), []);
 
   return (
     <Sheet className="pb-[clamp(4rem,14vh,10rem)]" aria-labelledby="projects-heading">
@@ -45,16 +51,23 @@ export default function Projects() {
 
       <ol className="grid-15 mt-[clamp(3rem,8vh,6rem)] items-start gap-y-[clamp(4rem,10vh,8rem)]">
         {projectsData.map((project, i) => (
-          <ProjectItem key={project.id} project={project} index={i} {...(LAYOUT[i] ?? LAYOUT[0])} />
+          <ProjectItem key={project.id} project={project} index={i} onWatch={openShowcase} {...(LAYOUT[i] ?? LAYOUT[0])} />
         ))}
       </ol>
+
+      <ShowcaseModal
+        project={showcase ? showcase.project : null}
+        number={showcase ? String(showcase.index + 1).padStart(2, "0") : ""}
+        trigger={showcase ? showcase.trigger : null}
+        onClose={closeShowcase}
+      />
     </Sheet>
   );
 }
 
 /* ------------------------------------------------------------------ */
 
-function ProjectItem({ project, index, tone, kind }) {
+function ProjectItem({ project, index, tone, kind, onWatch }) {
   const reduce = useReducedMotion();
   const number = String(index + 1).padStart(2, "0");
   const child = reduce ? fadeChild : riseChild;
@@ -97,7 +110,7 @@ function ProjectItem({ project, index, tone, kind }) {
   if (kind === "split-right") {
     body = (
       <>
-        <ProjectTile project={project} number={number} tone={tone} index={index} className="col-span-full md:col-start-1 md:col-span-9" />
+        <ProjectTile project={project} number={number} tone={tone} index={index} onWatch={onWatch} className="col-span-full md:col-start-1 md:col-span-9" />
         <div className="col-span-full mt-5 md:col-start-11 md:col-span-5 md:mt-0 md:self-end">
           {title}
           {description("mt-3")}
@@ -108,7 +121,7 @@ function ProjectItem({ project, index, tone, kind }) {
   } else if (kind === "split-left") {
     body = (
       <>
-        <ProjectTile project={project} number={number} tone={tone} index={index} className="col-span-full md:col-start-7 md:col-span-9" />
+        <ProjectTile project={project} number={number} tone={tone} index={index} onWatch={onWatch} className="col-span-full md:col-start-7 md:col-span-9" />
         <div className="col-span-full mt-5 md:col-start-1 md:col-span-5 md:mt-[4rem] md:self-start">
           {title}
           {description("mt-3")}
@@ -119,7 +132,7 @@ function ProjectItem({ project, index, tone, kind }) {
   } else if (kind === "wide") {
     body = (
       <>
-        <ProjectTile project={project} number={number} tone={tone} index={index} className="project-tile--wide w-full" />
+        <ProjectTile project={project} number={number} tone={tone} index={index} onWatch={onWatch} className="project-tile--wide w-full" />
         <div className="grid-15 mt-5 md:mt-8">
           <div className="col-span-full md:col-start-1 md:col-span-5">{title}</div>
           <div className="col-span-full mt-3 md:col-start-7 md:col-span-8 md:mt-0">
@@ -132,7 +145,7 @@ function ProjectItem({ project, index, tone, kind }) {
   } else {
     body = (
       <>
-        <ProjectTile project={project} number={number} tone={tone} index={index} className="w-full" />
+        <ProjectTile project={project} number={number} tone={tone} index={index} onWatch={onWatch} className="w-full" />
         <div className="mt-5 md:mt-6">
           {title}
           {description("mt-3")}
@@ -176,18 +189,26 @@ const imageFade = {
 
 /* Coloured matte with the project screenshot bleeding off its bottom-right,
    the whole tile linking to the live site. On hover devices a small "Live"
-   pill follows the pointer via spring-smoothed motion values (no React state). */
-function ProjectTile({ project, number, tone, index, className = "" }) {
+   pill follows the pointer via spring-smoothed motion values (no React state).
+
+   Projects with a reel crossfade the screenshot into a muted preview: on hover
+   or keyboard focus where hovering is possible and motion is welcome, otherwise
+   through an explicit Preview toggle (touch, reduced motion). "Watch showcase"
+   opens the full reel in the modal. Playback status comes from the media
+   events, so the poster only gives way once a frame is really on screen. */
+function ProjectTile({ project, number, tone, index, onWatch, className = "" }) {
   const reduce = useReducedMotion();
   const hoverDevice = useMediaQuery("(hover: hover)");
   const showPill = hoverDevice && !reduce;
+  const hasVideo = Boolean(project.video);
+  const autoPreview = hasVideo && hoverDevice && !reduce;
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const sx = useSpring(x, SPRING);
   const sy = useSpring(y, SPRING);
 
-  const onPointerEnter = (e) => {
+  const onPillEnter = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
     const px = e.clientX - r.left;
     const py = e.clientY - r.top;
@@ -196,46 +217,153 @@ function ProjectTile({ project, number, tone, index, className = "" }) {
     sx.jump(px);
     sy.jump(py);
   };
-  const onPointerMove = (e) => {
+  const onPillMove = (e) => {
     const r = e.currentTarget.getBoundingClientRect();
     x.set(e.clientX - r.left);
     y.set(e.clientY - r.top);
   };
 
+  /* Preview playback */
+  const videoRef = useRef(null);
+  const [armed, setArmed] = useState(false); // near the viewport once: worth fetching metadata
+  const [wanted, setWanted] = useState(false); // visitor intent (hover, focus, toggle)
+  const [status, setStatus] = useState("idle"); // idle | playing | failed, from media events
+
+  const releaseRef = useRef(null);
+  // Stable identity: the registry compares stop functions to know the owner.
+  const halt = useCallback(() => {
+    videoRef.current?.pause();
+    setWanted(false);
+    releaseRef.current?.();
+    releaseRef.current = null;
+  }, []);
+
+  const start = () => {
+    const v = videoRef.current;
+    if (!v || wanted) return;
+    releaseRef.current = claimPreview(halt);
+    setWanted(true);
+    v.muted = true;
+    const attempt = v.play();
+    // Autoplay refused: drop the intent so the poster and controls stay honest.
+    // (AbortError is just a play() cut short by our own pause(): nothing to do.)
+    if (attempt && typeof attempt.catch === "function") {
+      attempt.catch((err) => {
+        if (err?.name !== "AbortError") halt();
+      });
+    }
+  };
+  const stop = () => {
+    if (wanted) halt();
+  };
+
+  // Unmounting (route change) ends the preview and frees the slot
+  useEffect(() => () => halt(), [halt]);
+
+  const hoverProps = autoPreview
+    ? {
+        onPointerEnter: (e) => e.pointerType !== "touch" && start(),
+        onPointerMove: (e) => e.pointerType !== "touch" && start(),
+        onPointerLeave: (e) => e.pointerType !== "touch" && stop(),
+        onFocus: (e) => e.target.matches(":focus-visible") && start(),
+        onBlur: (e) => !e.currentTarget.contains(e.relatedTarget) && stop(),
+      }
+    : {};
+
   return (
-    <Motion.a
-      href={project.live}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`${project.title}, live site`}
+    <Motion.div
       className={`project-tile tone-${tone} ${className}`}
+      data-preview={status === "playing" ? "playing" : undefined}
       variants={reduce ? tileFade : tileRise}
-      onPointerEnter={showPill ? onPointerEnter : undefined}
-      onPointerMove={showPill ? onPointerMove : undefined}
+      viewport={{ margin: "200px 0px" }}
+      onViewportEnter={hasVideo ? () => setArmed(true) : undefined}
+      onViewportLeave={hasVideo ? halt : undefined}
+      {...hoverProps}
     >
-      <span
-        className="absolute left-3 top-3 text-[length:var(--fs-ui)] font-medium leading-none tabular-nums tracking-[-0.02em] md:left-4 md:top-4"
-        aria-hidden="true"
+      <a
+        href={project.live}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${project.title}, live site`}
+        className="project-tile__link"
+        onPointerEnter={showPill ? onPillEnter : undefined}
+        onPointerMove={showPill ? onPillMove : undefined}
       >
-        {number}
-      </span>
+        <span
+          className="absolute left-3 top-3 text-[length:var(--fs-ui)] font-medium leading-none tabular-nums tracking-[-0.02em] md:left-4 md:top-4"
+          aria-hidden="true"
+        >
+          {number}
+        </span>
 
-      <Motion.img
-        src={project.image}
-        alt={project.title}
-        className="project-tile__img"
-        loading={index === 0 ? "eager" : "lazy"}
-        fetchPriority={index === 0 ? "high" : undefined}
-        decoding="async"
-        variants={reduce ? imageFade : imageClip}
-      />
+        <Motion.div className="project-tile__media" variants={reduce ? imageFade : imageClip}>
+          <img
+            src={project.image}
+            alt={project.title}
+            className="project-tile__img"
+            loading={index === 0 ? "eager" : "lazy"}
+            fetchPriority={index === 0 ? "high" : undefined}
+            decoding="async"
+          />
+          {hasVideo && status !== "failed" ? (
+            <video
+              ref={videoRef}
+              className="project-tile__video"
+              src={project.video}
+              muted
+              loop
+              playsInline
+              disablePictureInPicture
+              disableRemotePlayback
+              preload={armed ? "metadata" : "none"}
+              tabIndex={-1}
+              aria-hidden="true"
+              onPlaying={() => setStatus("playing")}
+              onPause={() => setStatus("idle")}
+              onError={() => {
+                setStatus("failed");
+                halt();
+              }}
+            />
+          ) : null}
+        </Motion.div>
 
-      {showPill ? (
-        <Motion.span className="project-tile__pill label bg-fill text-fill-fg" style={{ x: sx, y: sy }} aria-hidden="true">
-          Live
-          <ArrowUpRight size={14} weight="regular" />
-        </Motion.span>
+        {showPill ? (
+          <Motion.span className="project-tile__pill label bg-fill text-fill-fg" style={{ x: sx, y: sy }} aria-hidden="true">
+            Live
+            <ArrowUpRight size={14} weight="regular" />
+          </Motion.span>
+        ) : null}
+      </a>
+
+      {hasVideo ? (
+        <div className="project-tile__actions">
+          {!autoPreview && status !== "failed" ? (
+            <button
+              type="button"
+              className="project-tile__btn"
+              aria-pressed={wanted}
+              aria-label={wanted ? `Pause ${project.title} preview` : `Play ${project.title} preview`}
+              onClick={() => (wanted ? stop() : start())}
+            >
+              {wanted ? <Pause size={13} weight="fill" aria-hidden="true" /> : <Play size={13} weight="fill" aria-hidden="true" />}
+              <span>{wanted ? "Pause" : "Preview"}</span>
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="project-tile__btn project-tile__btn--watch"
+            aria-label={`Watch ${project.title} showcase`}
+            onClick={(e) => {
+              stopPreviews();
+              onWatch(project, index, e.currentTarget);
+            }}
+          >
+            <Play size={13} weight="fill" aria-hidden="true" />
+            <span>Watch showcase</span>
+          </button>
+        </div>
       ) : null}
-    </Motion.a>
+    </Motion.div>
   );
 }

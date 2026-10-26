@@ -1,11 +1,13 @@
-/* /projects page-only styles: tile tones, hover behaviour and the cursor pill.
+/* /projects page-only styles: tile tones, hover behaviour, the cursor pill,
+   the reel preview inside a tile and the showcase modal.
    Everything colour-related goes through the semantic tokens in index.css. */
 
 .project-tile {
   --tile-bg: var(--cream);
   --tile-fg: var(--ink);
-  /* The cursor pill uses bg-fill/text-fill-fg; inside a tile the fill is the
-     tile's own inverse so the pill stays visible on every tone in both themes. */
+  /* The cursor pill and the tile buttons use bg-fill/text-fill-fg; inside a
+     tile the fill is the tile's own inverse so they stay visible on every tone
+     in both themes. */
   --fill: var(--tile-fg);
   --fill-fg: var(--tile-bg);
   position: relative;
@@ -16,8 +18,6 @@
   background-color: var(--tile-bg);
   color: var(--tile-fg);
   border-bottom-right-radius: var(--radius-card);
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
 }
 @media (min-width: 768px) {
   .project-tile {
@@ -35,17 +35,57 @@
 .project-tile.tone-brick { --tile-bg: var(--brick); --tile-fg: var(--cream); }
 .project-tile.tone-ink   { --tile-bg: var(--ink-card); --tile-fg: var(--ink-card-fg); }
 
-/* Screenshot: offset from the top-left so the matte shows, bleeding off bottom-right */
-.project-tile__img {
+/* The live-site link fills the tile; the focus ring is drawn on the tile
+   itself so overflow:hidden cannot clip it. */
+.project-tile__link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.project-tile__link:focus-visible {
+  outline: none;
+}
+.project-tile:has(.project-tile__link:focus-visible) {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Media box: offset from the top-left so the matte shows, bleeding off
+   bottom-right. The screenshot and the preview share it. */
+.project-tile__media {
   position: absolute;
   left: 8%;
   top: 18%;
   width: 92%;
   height: 82%;
-  object-fit: cover;
-  object-position: left top;
   transition: transform 0.8s var(--ease-out);
   will-change: transform, clip-path;
+}
+.project-tile__img,
+.project-tile__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.project-tile__img {
+  object-position: left top;
+}
+/* The reel sits above the screenshot and only fades in once a frame is
+   really playing, so a slow network or a refused autoplay never shows black. */
+.project-tile__video {
+  object-position: center;
+  background-color: transparent;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s var(--ease-out);
+}
+.project-tile[data-preview="playing"] .project-tile__video {
+  opacity: 1;
 }
 
 /* Cursor-following "Live" pill: positioned by motion values, centred on the pointer */
@@ -66,6 +106,52 @@
   transition: opacity 0.3s var(--ease-out);
 }
 
+/* Reel controls: bottom-left of the tile, in the same register as the pill.
+   Always on show for touch and reduced motion; revealed by hover or focus
+   where hovering exists and motion is welcome. */
+.project-tile__actions {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+@media (min-width: 768px) {
+  .project-tile__actions {
+    left: 1rem;
+    bottom: 1rem;
+  }
+}
+.project-tile__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 0.5rem 0.8rem 0.5rem 0.7rem;
+  border: 1px solid var(--fill);
+  border-radius: 0 0 0.75rem 0;
+  background-color: var(--fill);
+  color: var(--fill-fg);
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out), opacity 0.3s var(--ease-out);
+}
+.project-tile__btn[aria-pressed="true"] {
+  background-color: var(--fill-fg);
+  color: var(--fill);
+}
+
 /* Project title nudges right while its tile is hovered or focused */
 .project-title__text {
   display: inline-block;
@@ -76,17 +162,37 @@
   .project-tile__pill {
     display: inline-flex;
   }
-  .project-tile:hover .project-tile__pill,
-  .project-tile:focus-visible .project-tile__pill {
+  .project-tile__link:hover .project-tile__pill,
+  .project-tile__link:focus-visible .project-tile__pill {
     opacity: 1;
   }
-  .project-tile:hover .project-tile__img,
-  .project-tile:focus-visible .project-tile__img {
+  .project-tile:hover .project-tile__media,
+  .project-tile:focus-within .project-tile__media {
     transform: scale(1.03);
   }
   .project:has(.project-tile:hover) .project-title__text,
-  .project:has(.project-tile:focus-visible) .project-title__text {
+  .project:has(.project-tile:focus-within) .project-title__text {
     transform: translateX(0.35em);
+  }
+  .project-tile__btn:hover {
+    background-color: var(--fill-fg);
+    color: var(--fill);
+  }
+  .project-tile__btn[aria-pressed="true"]:hover {
+    background-color: var(--fill);
+    color: var(--fill-fg);
+  }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .project-tile__actions {
+    opacity: 0;
+    translate: 0 0.35rem;
+    transition: opacity 0.35s var(--ease-out), translate 0.35s var(--ease-out);
+  }
+  .project-tile:hover .project-tile__actions,
+  .project-tile:focus-within .project-tile__actions {
+    opacity: 1;
+    translate: 0 0;
   }
 }
 
@@ -94,9 +200,126 @@
   .project-tile__pill {
     display: none;
   }
-  .project-tile__img,
+  .project-tile__media,
   .project-title__text {
     transition-duration: 0.01ms;
     transform: none;
+  }
+  .project-tile__video,
+  .project-tile__btn {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Showcase modal: always dark, whatever the page theme.               */
+/* ------------------------------------------------------------------ */
+.showcase {
+  --fg: var(--cream);
+  --fg-muted: #cfc6b8;
+  --rule: color-mix(in srgb, var(--cream) 28%, transparent);
+  --fill: var(--cream);
+  --fill-fg: var(--ink);
+  --accent: var(--ochre);
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.875rem 1rem 1.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--fg);
+  background-color: color-mix(in srgb, var(--char) 90%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+@media (min-width: 768px) {
+  .showcase {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 1.25rem 2.5rem 1.75rem;
+    overflow: hidden;
+  }
+}
+.showcase__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.showcase__stage {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+.showcase__figure {
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+@media (min-width: 768px) {
+  .showcase__figure {
+    width: min(100%, calc((100dvh - 15.5rem) * 16 / 9), 1280px);
+  }
+}
+.showcase__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: min(var(--radius-sheet), 1.5rem);
+  background-color: #000;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cream) 10%, transparent),
+    0 40px 90px -30px rgb(0 0 0 / 0.75);
+}
+.showcase__video,
+.showcase__poster {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.showcase__video:focus-visible {
+  outline-offset: -3px;
+}
+.showcase__frame--fallback {
+  display: grid;
+  place-items: center;
+}
+.showcase__frame--fallback .showcase__poster {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+}
+.showcase__frame--fallback p {
+  position: relative;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0 0 0.75rem 0;
+  background-color: var(--fill);
+  color: var(--fill-fg);
+  text-align: center;
+}
+.showcase__caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 768px) {
+  .showcase__caption {
+    width: min(100%, 1280px);
+    margin-inline: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
