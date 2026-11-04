@@ -73,14 +73,16 @@ Every page renders inside one `Sheet` component: a rounded panel that enters wit
 
 <table>
   <tr>
-    <td width="50%"><img src=".github/assets/contact-light.png" alt="Contact in light mode: a dark ink sheet with cream Let's Connect headline, underline-only fields and a brick-red Send message tile" width="100%" /></td>
-    <td width="50%"><img src=".github/assets/contact-dark.png" alt="Contact in dark mode: a cream sheet with ink type and the same brick-red Send message tile" width="100%" /></td>
+    <td width="50%"><img src=".github/assets/contact-light.png" alt="Contact in light mode: a dark ink sheet with a cream Let's Connect headline, cream line doodles of a phone, an envelope and a chat bubble, a paper plane looping through the Connect row on a dotted trail, and an ochre pixel robot pointing at the focused Name field" width="100%" /></td>
+    <td width="50%"><img src=".github/assets/contact-dark.png" alt="Contact in dark mode: the same scene on a cream sheet, with ink doodles and the robot outlined in ink beside the brick-red Send message tile" width="100%" /></td>
   </tr>
   <tr>
     <td align="center"><sub><code>/contact</code> · light theme → ink sheet</sub></td>
     <td align="center"><sub><code>/contact</code> · dark theme → cream sheet</sub></td>
   </tr>
 </table>
+
+**A desk that writes back.** Contact-themed line doodles (an envelope that lets a heart float out, a phone that rings, a chat bubble that types, a buzzing smartphone, an at sign that spins) draw themselves on once the headline lands, then drift on slow, out-of-phase loops in the panel's text colour, so they read as cream outlines on the ink sheet and ink outlines on the cream one. A paper plane loops through the empty half of the "Connect" row every few seconds, trailing dotted ink. Beside the form, a small pixel robot in the site's ochre, brick and cream glides to whichever field has focus, points at it (or, on narrow screens, perches on its label row), hops as you type, greets you by name, squints at an email that doesn't look right and waits by the button while your message is on its way. Hovering or focusing **Send message** previews what will happen: the envelope folds into a paper plane that revs in place; sending launches it, success draws a check while the robot cheers and every doodle hops. All of it is decorative and `aria-hidden`; the form, its labels and its live status line are unchanged. Under reduced motion everything settles into a still composition, and the robot and doodles load in their own small chunk, so no other page pays for them.
 
 > [!NOTE]
 > **Zero-flash theme engine.** An inline script in `index.html` reads `localStorage.theme`, falls back to `prefers-color-scheme`, and sets `data-theme` on `<html>` before first paint. Components never touch raw colours: they use semantic tokens that are re-mapped once for dark mode and once more for `[data-invert]`, and Tailwind v4 reads them through an `@theme inline` block.
@@ -214,7 +216,7 @@ Aaron is a **Junior Software Engineer at Bytestrone**, working in .NET with **Sp
 - **One source of truth for constants.** Easing curves, core durations and staggers live in `src/lib/motion.js`; every colour lives in the token block of `src/index.css`. Components read tokens and never use raw colours.
 - **Small, self-contained pages.** Each route composes `Sheet` and the `TitleLines` system, reaching for `NavCard` where it needs a tile. Adding a page touches one file plus the router.
 
-The contact form is a single client-side `fetch` to Web3Forms with field validation and a 3-second client rate limit.
+The contact form is a single client-side `fetch` to Web3Forms with field validation, a 3-second client rate limit and a hidden honeypot checkbox: people never see it, so a tick is passed to Web3Forms as `botcheck` and the submission is flagged as spam.
 
 <br />
 
@@ -275,12 +277,13 @@ aaron-portfolio/
 │   │   ├── SocialTile.jsx      # Elsewhere tile: site matte at rest, platform colour wipes up on hover
 │   │   ├── BrandIcons.jsx      # official platform marks as currentColor SVG paths (Simple Icons; LinkedIn via Font Awesome)
 │   │   ├── worlds/             # one scene per platform (GithubWorld … EmailWorld), World stage, kit (particles), glyphs, shapes
+│   │   ├── contact/            # Contact extras: pixel Robot (sprite as ASCII art), SendButton, line doodles + paper-plane flight
 │   │   ├── Navbar.jsx          # layoutId active underline, inverted mobile menu sheet
 │   │   └── ThemeToggle.jsx     # half-filled dot that turns over
 │   ├── context/                # ThemeContext + ThemeProvider (localStorage "theme")
 │   ├── data/                   # projects.js (the five tiles) · achievements.js (credentials) · socials.js (platform tiles)
 │   ├── pages/                  # Home · About · Projects · Achievements · Contact · NotFound
-│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · achievements.css · socials.css · notfound.css
+│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · achievements.css · socials.css · contact.css · notfound.css
 ├── public/projects/            # project1–5.png
 ├── public/achievements/        # badges/ (official artwork, one per credential) · certificates/ (PNG view + PDF where public)
 ├── public/_redirects           # Netlify SPA fallback so deep links and refreshes resolve
