@@ -5,6 +5,7 @@ import { TitleLines, TitleLine, TitleText } from "../components/TitleLines";
 import SendButton from "../components/contact/SendButton";
 import { ARM_ROW, FEET } from "../components/contact/robotMetrics";
 import { DUR, EASE, fadeChild, riseChild, riseParent, useFontsReady, useMediaQuery } from "../lib/motion";
+import "../styles/doodles.css";
 import "../styles/contact.css";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

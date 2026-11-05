@@ -1,5 +1,7 @@
-/* /achievements page-only styles: featured tiles, the index rows and the seal
-   fallback. Everything colour-related goes through the tokens in index.css. */
+/* /achievements page-only styles: featured tiles and their worlds, the index
+   rows, the seal fallback, the page's doodle art and the
+   certificate confetti. Everything colour-related goes through the tokens in
+   index.css. */
 
 /* Featured tile: a coloured matte with the official badge centred on it, the
    whole tile linking to the verification page. */
@@ -27,6 +29,80 @@
 .cred-tile.tone-ochre { --tile-bg: var(--ochre); --tile-fg: var(--ink); }
 .cred-tile.tone-brick { --tile-bg: var(--brick); --tile-fg: var(--cream); }
 .cred-tile.tone-ink   { --tile-bg: var(--ink-card); --tile-fg: var(--ink-card-fg); }
+
+/* The tile's world: a small vector scene under the badge and the furniture
+   (components/achievements/worlds), invisible at rest and played while the
+   tile is hovered or keyboard-focused. */
+.cred-world {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.cred-tile > :not(.cred-world) {
+  z-index: 1;
+}
+/* Its palette, by role (as in lib/worlds.js), from the site tokens only:
+   ink drawings with brick and ochre accents on the light mattes, cream on
+   the brick and ink ones. */
+@media (hover: hover) {
+  .cred-tile.tone-cream {
+    --w-line: var(--ink);
+    --w-detail: var(--ink);
+    --w-surface: color-mix(in srgb, var(--ochre) 22%, var(--cream));
+    --w-surface-2: color-mix(in srgb, var(--ink) 10%, var(--cream));
+    --w-shade: color-mix(in srgb, var(--ink) 13%, transparent);
+    --w-a1: var(--brick);
+    --w-a2: var(--ochre);
+    --w-a3: color-mix(in srgb, var(--ink) 45%, var(--cream));
+  }
+  .cred-tile.tone-ochre {
+    --w-line: var(--ink);
+    --w-detail: var(--ink);
+    --w-surface: var(--cream);
+    --w-surface-2: color-mix(in srgb, var(--ochre) 38%, var(--cream));
+    --w-shade: color-mix(in srgb, var(--ink) 18%, transparent);
+    --w-a1: var(--brick);
+    --w-a2: var(--cream);
+    --w-a3: color-mix(in srgb, var(--ink) 40%, var(--ochre));
+  }
+  .cred-tile.tone-brick {
+    --w-line: var(--cream);
+    --w-detail: var(--cream);
+    --w-surface: color-mix(in srgb, var(--ink) 42%, var(--brick));
+    --w-surface-2: color-mix(in srgb, var(--cream) 18%, var(--brick));
+    --w-shade: color-mix(in srgb, var(--ink) 30%, transparent);
+    --w-a1: var(--ochre);
+    --w-a2: var(--ink);
+    --w-a3: color-mix(in srgb, var(--cream) 55%, var(--brick));
+  }
+  .cred-tile.tone-ink {
+    --w-line: var(--cream);
+    --w-detail: var(--cream);
+    --w-surface: color-mix(in srgb, var(--cream) 10%, var(--ink-card));
+    --w-surface-2: color-mix(in srgb, var(--cream) 22%, var(--ink-card));
+    --w-shade: color-mix(in srgb, var(--char) 55%, transparent);
+    --w-a1: var(--ochre);
+    --w-a2: var(--brick);
+    --w-a3: color-mix(in srgb, var(--cream) 50%, var(--ink-card));
+  }
+}
+/* No hover on touch screens: the scene's still tableau stays on, a quiet
+   silhouette in tints of the tile's own ink, so the badge stays the hero. */
+@media (hover: none) {
+  .cred-tile {
+    --w-line: color-mix(in srgb, var(--tile-fg) 32%, var(--tile-bg));
+    --w-detail: color-mix(in srgb, var(--tile-fg) 32%, var(--tile-bg));
+    --w-surface: color-mix(in srgb, var(--tile-fg) 7%, var(--tile-bg));
+    --w-surface-2: color-mix(in srgb, var(--tile-fg) 12%, var(--tile-bg));
+    --w-shade: transparent;
+    --w-a1: color-mix(in srgb, var(--tile-fg) 26%, var(--tile-bg));
+    --w-a2: color-mix(in srgb, var(--tile-fg) 16%, var(--tile-bg));
+    --w-a3: color-mix(in srgb, var(--tile-fg) 12%, var(--tile-bg));
+  }
+}
 
 .cred-tile__badge {
   height: 56%;
@@ -137,9 +213,17 @@
 }
 
 /* Row interactions (hover devices only, mirrored for keyboard focus): a tinted
-   band settles in behind the row, the title eases right by the same 0.35em the
-   project titles use, the thumbnail grows a touch, the number comes forward,
-   and the other rows step back while one is in hand. */
+   band settles in behind the row and an accent hairline springs up at its
+   left edge; the number and the title lift (the title also eases right by the
+   0.35em the project titles use), the thumbnail grows a touch, and the other
+   rows step back while one is in hand. Springs overshoot a little and settle. */
+/* Spring curves for the index rows and for the action links, which also sit
+   under the featured tiles, outside the index */
+.cred-index,
+.cred-actions {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-soft: cubic-bezier(0.34, 1.32, 0.64, 1);
+}
 .cred-row::before {
   content: "";
   position: absolute;
@@ -152,30 +236,46 @@
   transform-origin: left center;
   transition: opacity 0.35s var(--ease-out), transform 0.6s var(--ease-out);
 }
-/* Dimming targets the row's children: Motion owns the row's own inline opacity. */
-.cred-row > * {
-  transition: opacity 0.45s var(--ease-out);
+.cred-row::after {
+  content: "";
+  position: absolute;
+  top: 1.1rem;
+  bottom: 1.1rem;
+  left: -0.75rem;
+  width: 2px;
+  border-radius: 1px;
+  background-color: var(--accent);
+  transform: scaleY(0);
+  transition: transform 0.55s var(--spring);
+}
+/* Dimming targets the row's children: Motion owns the row's own inline opacity.
+   From 768px the meta wrapper is display: contents (no box, so no opacity of
+   its own), which is why its children are dimmed rather than the wrapper. */
+.cred-row > *,
+.cred-row__meta > * {
+  transition: opacity 0.45s var(--ease-out), color 0.4s var(--ease-out);
 }
 .cred-row__num {
-  transition: opacity 0.45s var(--ease-out), color 0.4s var(--ease-out);
+  transition: opacity 0.45s var(--ease-out), color 0.4s var(--ease-out), transform 0.6s var(--spring-soft);
 }
 .cred-row__title {
   display: inline-block;
-  transition: transform 0.6s var(--ease-out);
+  transition: transform 0.6s var(--spring-soft);
 }
 .cred-row__thumb,
 .cred-row .cred-seal {
   transform-origin: center;
-  transition: transform 0.6s var(--ease-out);
+  transition: transform 0.6s var(--spring-soft);
 }
 
 /* Action links: the arrow nudges up and out on its own link, a hairline draws
-   under whichever link is in hand, and the set brightens with its row. */
+   under whichever link is in hand, and the set brightens with its row (and
+   steps back with it, hence the opacity). */
 .cred-actions {
-  transition: color 0.4s var(--ease-out);
+  transition: color 0.4s var(--ease-out), opacity 0.45s var(--ease-out);
 }
 .cred-actions li svg {
-  transition: transform 0.4s var(--ease-out);
+  transition: transform 0.45s var(--spring);
 }
 .cred-actions .link-reveal::before {
   content: "";
@@ -197,9 +297,13 @@
     opacity: 1;
     transform: none;
   }
+  .cred-row:hover::after,
+  .cred-row:focus-within::after {
+    transform: scaleY(1);
+  }
   .cred-row:hover .cred-row__title,
   .cred-row:focus-within .cred-row__title {
-    transform: translateX(0.35em);
+    transform: translate3d(0.35em, -0.12em, 0);
   }
   .cred-row:hover .cred-row__thumb,
   .cred-row:focus-within .cred-row__thumb,
@@ -210,6 +314,7 @@
   .cred-row:hover .cred-row__num,
   .cred-row:focus-within .cred-row__num {
     color: var(--fg);
+    transform: translate3d(0, -0.3em, 0);
   }
   .cred-row .cred-actions {
     color: var(--fg-muted);
@@ -218,8 +323,9 @@
   .cred-row:focus-within .cred-actions {
     color: var(--fg);
   }
-  .cred-index:hover .cred-row:not(:hover) > * {
-    opacity: 0.45;
+  .cred-index:hover .cred-row:not(:hover) > :not(.cred-row__meta),
+  .cred-index:hover .cred-row:not(:hover) .cred-row__meta > * {
+    opacity: 0.38;
   }
   .cred-actions li:hover svg,
   .cred-actions li:focus-within svg {
@@ -250,12 +356,172 @@
   border-bottom-color: var(--fg);
 }
 
+/* ------------------------------------------------------------------ */
+/* Doodles: this page's art and its small actions (the doodle system   */
+/* itself is in doodles.css, shared with /contact)                     */
+/* ------------------------------------------------------------------ */
+
+/* The celebration ripple waits for the lightbox veil to lift. The doodles
+   are the page head's only decoration, so they are drawn larger and a little
+   heavier than the contact page's, stepped with the headline (which scales
+   with the viewport while doodle sizes are in px). */
+.cred-doodles {
+  --hop-delay: 0.3s;
+  --stroke: 2.1;
+}
+.cred-doodles .doodle--xl { --d: 100; }
+.cred-doodles .doodle--lg { --d: 86; }
+.cred-doodles .doodle--md { --d: 68; }
+.cred-doodles .doodle--sm { --d: 50; }
+.cred-doodles .doodle--xs { --d: 30; }
+@media (max-width: 1279.98px) {
+  .cred-doodles { --stroke: 1.9; }
+  .cred-doodles .doodle--xl { --d: 84; }
+  .cred-doodles .doodle--lg { --d: 72; }
+  .cred-doodles .doodle--md { --d: 58; }
+  .cred-doodles .doodle--sm { --d: 44; }
+  .cred-doodles .doodle--xs { --d: 26; }
+}
+@media (max-width: 1023.98px) {
+  .cred-doodles { --stroke: 1.7; }
+  .cred-doodles .doodle--xl { --d: 64; }
+  .cred-doodles .doodle--lg { --d: 56; }
+  .cred-doodles .doodle--md { --d: 48; }
+  .cred-doodles .doodle--sm { --d: 38; }
+  .cred-doodles .doodle--xs { --d: 22; }
+}
+/* A few sparkles are drawn in the accent instead of the text colour */
+.doodle--tint {
+  color: var(--accent);
+}
+
+/* Laurel: a rustle runs up both branches, leaf by leaf, from the foot */
+.doodles[data-on] .art-laurel__leaf {
+  animation: art-laurel-rustle 7.5s ease-in-out calc((var(--act) + var(--n) * 0.07) * 1s) infinite;
+}
+@keyframes art-laurel-rustle {
+  0%, 12%, 100% { transform: none; }
+  4% { transform: rotate(calc(var(--s) * 16deg)); }
+  8% { transform: rotate(calc(var(--s) * -6deg)); }
+}
+
+/* Seal: lifted, tilted, pressed down, and the tick answers */
+.doodles[data-on] .art-seal {
+  animation: art-seal-press 8s var(--ease-out) calc(var(--act) * 1s) infinite;
+}
+@keyframes art-seal-press {
+  0%, 14%, 100% { transform: none; }
+  4% { transform: translate3d(0, -1.2px, 0) rotate(-12deg) scale(1.08); }
+  7% { transform: rotate(3deg) scale(0.92); }
+  10% { transform: scale(1.03); }
+}
+.doodles[data-on] .art-seal__tick {
+  animation: art-seal-tick 8s var(--ease-out) calc(var(--act) * 1s) infinite;
+}
+@keyframes art-seal-tick {
+  0%, 7%, 15%, 100% { transform: none; }
+  10.5% { transform: scale(1.35); }
+}
+
+/* Sparkle: the star turns and swells; the cross and the dot twinkle out of step */
+.doodles[data-on] .art-twinkle__star {
+  animation: art-twinkle 4.4s ease-in-out calc(var(--i) * -0.8s) infinite;
+}
+@keyframes art-twinkle {
+  0%, 100% { transform: scale(0.74) rotate(0deg); }
+  50% { transform: scale(1) rotate(45deg); }
+}
+.doodles[data-on] .art-twinkle__glint {
+  animation: art-twinkle-glint 2.6s ease-in-out calc((var(--i) * -0.6 + var(--n) * 1.1) * 1s) infinite;
+}
+@keyframes art-twinkle-glint {
+  0%, 100% { opacity: 0.25; transform: scale(0.5); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* Trophy: lifted with a little wobble while a glint flashes at the rim */
+.doodles[data-on] .art-trophy {
+  animation: art-trophy-lift 8.5s var(--ease-out) calc(var(--act) * 1s) infinite;
+}
+@keyframes art-trophy-lift {
+  0%, 15%, 100% { transform: none; }
+  4% { transform: translate3d(0, -1.6px, 0) rotate(-7deg); }
+  8% { transform: translate3d(0, -0.8px, 0) rotate(5deg); }
+  11.5% { transform: none; }
+}
+.art-trophy__glint {
+  opacity: 0;
+}
+.doodles[data-on] .art-trophy__glint {
+  animation: art-trophy-glint 8.5s ease-out calc((var(--act) + 0.25) * 1s) infinite;
+}
+@keyframes art-trophy-glint {
+  0%, 13%, 100% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  4% { opacity: 1; transform: scale(1.15) rotate(45deg); }
+  9% { opacity: 1; transform: scale(0.9) rotate(90deg); }
+}
+
+/* Rosette: the pleats turn by two steps (so the loop is seamless) and the
+   streamers flutter from where they hang */
+.doodles[data-on] .art-rosette__pleats {
+  animation: art-rosette-turn 9s var(--ease-inout) calc(var(--act) * 1s) infinite;
+}
+@keyframes art-rosette-turn {
+  0% { transform: rotate(0deg); }
+  12%, 100% { transform: rotate(72deg); }
+}
+.doodles .doodle__svg .art-rosette__tails {
+  transform-origin: 50% 0%;
+}
+.doodles[data-on] .art-rosette__tails {
+  animation: art-rosette-flutter 9s ease-in-out calc((var(--act) + 0.1) * 1s) infinite;
+}
+@keyframes art-rosette-flutter {
+  0%, 14%, 100% { transform: none; }
+  3% { transform: rotate(6deg) skewX(-5deg); }
+  6.5% { transform: rotate(-5deg) skewX(4deg); }
+  10% { transform: rotate(2deg); }
+}
+
+/* ------------------------------------------------------------------ */
+/* Certificate confetti (components/achievements/ConfettiBurst.jsx)    */
+/* ------------------------------------------------------------------ */
+
+/* Inside the lightbox, above the artwork and its arrows */
+.confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* Reduced motion gets this instead: a warm glow that comes and goes in 300 ms */
+.confetti-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(60% 55% at 50% 46%, color-mix(in srgb, var(--ochre) 30%, transparent), transparent 72%);
+  opacity: 0;
+  animation: confetti-glow 0.3s ease-out both;
+}
+@keyframes confetti-glow {
+  0%, 100% { opacity: 0; }
+  40% { opacity: 1; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion: states change, nothing travels                      */
+/* ------------------------------------------------------------------ */
+
 @media (prefers-reduced-motion: reduce) {
   .cred-tile__badge,
   .cred-tile__cta,
   .cred-filter,
   .cred-row > *,
   .cred-row::before,
+  .cred-row::after,
   .cred-row__num,
   .cred-row__title,
   .cred-row__thumb,
@@ -263,10 +529,11 @@
   .cred-actions,
   .cred-actions li svg,
   .cred-actions .link-reveal::before {
-    transition-duration: 0.01ms;
+    transition-duration: 0.01ms !important;
   }
   .cred-tile__badge,
   .cred-tile__cta,
+  .cred-row__num,
   .cred-row__title,
   .cred-row__thumb,
   .cred-row .cred-seal,
@@ -277,6 +544,20 @@
     transform: none;
   }
   .cred-tile__cta {
+    opacity: 1;
+  }
+  .doodles[data-on] .art-laurel__leaf,
+  .doodles[data-on] .art-seal,
+  .doodles[data-on] .art-seal__tick,
+  .doodles[data-on] .art-twinkle__star,
+  .doodles[data-on] .art-twinkle__glint,
+  .doodles[data-on] .art-trophy,
+  .doodles[data-on] .art-trophy__glint,
+  .doodles[data-on] .art-rosette__pleats,
+  .doodles[data-on] .art-rosette__tails {
+    animation: none !important;
+  }
+  .art-trophy__glint {
     opacity: 1;
   }
 }
