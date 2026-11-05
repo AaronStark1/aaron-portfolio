@@ -7,11 +7,13 @@ import { EASE, EASE_INOUT } from "../lib/motion";
  * Full-screen gallery for credential artwork. `items` is one gallery (badges
  * or certificates), `index` the open slide; arrows and swipes move within it.
  * Esc closes, focus moves to the close control on open and returns on close,
- * and the page behind stops scrolling while it is up.
+ * and the page behind stops scrolling while it is up. `children` render as an
+ * overlay inside the dialog, above the artwork (the achievements page puts
+ * its certificate confetti there); they open and leave with it.
  *
  *   item: { id, src, alt, title, meta, verify, pdf? }
  */
-export default function Lightbox({ open, items, index, kind, onClose, onNavigate }) {
+export default function Lightbox({ open, items, index, kind, onClose, onNavigate, children }) {
   const reduce = useReducedMotion();
   const closeRef = useRef(null);
   const openerRef = useRef(null);
@@ -137,6 +139,7 @@ export default function Lightbox({ open, items, index, kind, onClose, onNavigate
               )}
             </ul>
           </div>
+          {children}
         </Motion.div>
       )}
     </AnimatePresence>
