@@ -145,11 +145,14 @@
 .doodles[data-on] .art-mail__heart {
   animation: art-mail-heart 8s var(--ease-out) calc(var(--act) * 1s) infinite;
 }
+/* Distances are in the art's 24-unit grid, so they grow with the doodle: the
+   heart only just clears the flap, which keeps it on the sheet above the
+   big header envelope */
 @keyframes art-mail-heart {
   0% { opacity: 0; transform: translate3d(0, 2px, 0) scale(0.4); }
-  5% { opacity: 1; transform: translate3d(0, -9px, 0) scale(1); }
-  13% { opacity: 1; transform: translate3d(1px, -15px, 0) scale(1) rotate(8deg); }
-  18%, 100% { opacity: 0; transform: translate3d(2px, -19px, 0) scale(0.9) rotate(10deg); }
+  5% { opacity: 1; transform: translate3d(0, -5px, 0) scale(1); }
+  13% { opacity: 1; transform: translate3d(1px, -8px, 0) scale(1) rotate(8deg); }
+  18%, 100% { opacity: 0; transform: translate3d(2px, -10px, 0) scale(0.9) rotate(10deg); }
 }
 
 .doodles[data-on] .art-chat__dot {
@@ -233,17 +236,109 @@
   50% { transform: scale(1) rotate(45deg); }
 }
 
+/* The hand waves from the wrist while its motion marks flash */
+.art-hand__marks {
+  opacity: 0;
+}
+.doodles .doodle__svg .art-hand {
+  transform-origin: 55% 100%;
+}
+.doodles[data-on] .art-hand {
+  animation: art-hand-wave 7s ease-in-out calc(var(--act) * 1s) infinite;
+}
+.doodles[data-on] .art-hand__marks {
+  animation: art-hand-marks 7s linear calc(var(--act) * 1s) infinite;
+}
+@keyframes art-hand-wave {
+  0%, 15%, 100% { transform: none; }
+  2.5% { transform: rotate(-14deg); }
+  5% { transform: rotate(10deg); }
+  7.5% { transform: rotate(-12deg); }
+  10% { transform: rotate(8deg); }
+  12.5% { transform: rotate(-3deg); }
+}
+@keyframes art-hand-marks {
+  0%, 14%, 100% { opacity: 0; }
+  2%, 11% { opacity: 1; }
+}
+
+/* The pencil scribbles on its tip while the line beside it writes itself
+   again from the left */
+.doodles .doodle__svg .art-pencil {
+  transform-origin: 3% 97%;
+}
+.doodles .doodle__svg .art-pencil__line {
+  transform-origin: 0% 50%;
+}
+.doodles[data-on] .art-pencil {
+  animation: art-pencil-write 8s ease-in-out calc(var(--act) * 1s) infinite;
+}
+.doodles[data-on] .art-pencil__line {
+  animation: art-pencil-line 8s var(--ease-out) calc(var(--act) * 1s) infinite;
+}
+@keyframes art-pencil-write {
+  0%, 13%, 100% { transform: none; }
+  2% { transform: rotate(-5deg); }
+  4% { transform: rotate(3deg); }
+  6% { transform: rotate(-4deg); }
+  8% { transform: rotate(2deg); }
+  10% { transform: rotate(-2deg); }
+}
+@keyframes art-pencil-line {
+  0%, 100% { transform: none; }
+  1% { transform: scaleX(0); }
+  11% { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doodles[data-on] .art-hand,
+  .doodles[data-on] .art-hand__marks,
+  .doodles[data-on] .art-pencil,
+  .doodles[data-on] .art-pencil__line {
+    animation: none !important;
+  }
+  .art-hand__marks {
+    opacity: 1;
+  }
+}
+
+/* Scale: the same sizes and line weight as the /achievements doodles,
+   stepped with the headline (which scales with the viewport while doodle
+   sizes are in px) */
+.contact-doodles {
+  --stroke: 2.1;
+}
+.contact-doodles .doodle--lg { --d: 86; }
+.contact-doodles .doodle--md { --d: 68; }
+.contact-doodles .doodle--sm { --d: 50; }
+.contact-doodles .doodle--xs { --d: 30; }
+@media (max-width: 1279.98px) {
+  .contact-doodles { --stroke: 1.9; }
+  .contact-doodles .doodle--lg { --d: 72; }
+  .contact-doodles .doodle--md { --d: 58; }
+  .contact-doodles .doodle--sm { --d: 44; }
+  .contact-doodles .doodle--xs { --d: 26; }
+}
+@media (max-width: 1023.98px) {
+  .contact-doodles { --stroke: 1.7; }
+  .contact-doodles .doodle--lg { --d: 56; }
+  .contact-doodles .doodle--md { --d: 48; }
+  .contact-doodles .doodle--sm { --d: 38; }
+  .contact-doodles .doodle--xs { --d: 22; }
+}
+
 /* ------------------------------------------------------------------ */
 /* The paper-plane flight through the "Connect" row                    */
 /* ------------------------------------------------------------------ */
 
+/* The box is the "Connect" row, from rule to rule */
 .flight {
   position: absolute;
   z-index: -1;
   left: 1.5%;
-  top: 55%;
+  top: 47%;
   width: 58%;
-  height: 40%;
+  height: 52%;
   display: none;
   overflow: hidden;
   color: var(--fg);
@@ -267,9 +362,15 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+/* the doodles' line weight */
 .flight__plane path {
   vector-effect: non-scaling-stroke;
-  stroke-width: 1.6px;
+  stroke-width: 2.1px;
+}
+@media (max-width: 1279.98px) {
+  .flight__plane path {
+    stroke-width: 1.9px;
+  }
 }
 
 /* ------------------------------------------------------------------ */

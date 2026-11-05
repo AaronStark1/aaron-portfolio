@@ -1,61 +1,113 @@
 import { useId } from "react";
 import { motion as Motion } from "motion/react";
-import { AtArt, ChatArt, HeartArt, MailArt, MobileArt, PhoneArt, PlaneArt, SparkleArt } from "./DoodleArt";
+import { AtArt, ChatArt, HandArt, HeartArt, MailArt, MobileArt, PencilArt, PhoneArt, PlaneArt, SparkleArt } from "./DoodleArt";
 
 /**
  * Contact-themed line doodles floating in the empty parts of the page.
  * They draw themselves on once the headline has landed, then drift on two
  * out-of-phase loops (CSS, so the compositor does the work) while one at a
  * time performs a small action: the phone rings, the bubble types, a heart
- * leaves the envelope. Everything is decorative and ignores the pointer.
+ * leaves the envelope, the hand waves. Everything is decorative and ignores
+ * the pointer.
  *
- *   region     "header" (beside the headline) | "body" (around the form)
+ *   region     "header" (the two title lines) | "body" (statement and form)
  *   on         start drawing (after fonts and the headline)
  *   celebrate  bump after a successful send: every doodle hops once
  */
 
-const ART = { mail: MailArt, chat: ChatArt, phone: PhoneArt, at: AtArt, mobile: MobileArt, heart: HeartArt, sparkle: SparkleArt, plane: PlaneArt };
+const ART = {
+  mail: MailArt,
+  chat: ChatArt,
+  phone: PhoneArt,
+  at: AtArt,
+  mobile: MobileArt,
+  heart: HeartArt,
+  sparkle: SparkleArt,
+  plane: PlaneArt,
+  hand: HandArt,
+  pencil: PencilArt,
+};
 
-/* Placement in % of the region (or `bottom` in px from its foot, for the
-   ones that keep the send button company whatever the form's height); `at`
-   limits a doodle to a layout: "wide" ≥1024px, "narrow" <1024px,
-   "md" ≥768px (two columns), "sm" <768px (one column).
+/* The rule under "Let's", in % of the two title lines (all of it in em, so
+   the same at every size) */
+const RULE = 46;
+
+/* Placement. Header doodles sit right of "Let's": `left` in % of the title
+   width, and `gap`, the clear space in px between the doodle at the low
+   point of its bob and the rule beneath it, so each keeps the same distance
+   from the rule whatever the headline's size and its own (the small ones
+   up by the cap line use `top`, in % of the two lines). Body doodles use
+   `left`/`top` in % of the statement-and-form block, `top` as a CSS length
+   for spots just outside it, or `bottom` in px from its foot (the ones that
+   keep the send button company whatever the form's height). They stay out
+   of the robot's lane: beside the form on wide screens, on its right edge
+   on narrow ones.
+   `at` limits a doodle to a layout: "wide" ≥1024px, "narrow" <1024px,
+   "md" ≥768px (two columns), "sm" <768px (one column); "md narrow" is both
+   (768-1023px, where the robot perches on the form).
    f = [drift x px, bob y px, tilt deg], t = [drift s, bob s],
    draw = draw-on delay, act = first action delay. */
 const PLACES = {
   header: [
-    { art: "mail", at: "wide", size: "lg", left: 58, top: 27, f: [9, 7, 5], t: [9.5, 6.4], draw: 0.95, act: 3.2 },
-    { art: "sparkle", at: "wide", size: "xs", left: 47, top: 17, f: [4, 5, 0], t: [7, 5], draw: 1.2 },
-    { art: "chat", at: "wide", size: "md", left: 76, top: 42, f: [8, 8, 6], t: [8.6, 5.8], draw: 1.1, act: 6.1 },
-    { art: "phone", at: "wide", size: "md", left: 34, top: 40, f: [7, 9, 7], t: [10.2, 6.9], draw: 1.25, act: 8.9 },
-    { art: "sparkle", at: "wide", size: "xs", left: 89, top: 19, f: [5, 4, 0], t: [8, 5.6], draw: 1.4 },
+    { art: "phone", at: "md", size: "md", left: 30, gap: 27, f: [7, 7, 7], t: [10.2, 6.9], draw: 1.05, act: 8.9 },
+    { art: "sparkle", at: "md", size: "xs", left: 41.5, top: -1, f: [4, 4, 0], t: [7, 5], draw: 1.2 },
+    { art: "mail", at: "md", size: "lg", left: 54, gap: 22, f: [9, 5, 5], t: [9.5, 6.4], draw: 0.95, act: 3.2 },
+    { art: "sparkle", at: "md", size: "xs", left: 66, gap: 26, f: [4, 4, 0], t: [8, 5.6], draw: 1.3 },
+    { art: "chat", at: "md", size: "md", left: 78.5, gap: 28, f: [8, 7, 6], t: [8.6, 5.8], draw: 1.1, act: 6.1 },
+    { art: "sparkle", at: "md", size: "xs", left: 92, top: 4, f: [5, 4, 0], t: [8, 5.6], draw: 1.4 },
 
-    { art: "mail", at: "narrow", size: "sm", left: 63, top: 34, f: [5, 5, 5], t: [9, 6.2], draw: 0.9, act: 3.2 },
-    { art: "sparkle", at: "narrow", size: "xs", left: 50, top: 22, f: [3, 3, 0], t: [7, 5], draw: 1.1 },
-    { art: "chat", at: "narrow", size: "sm", left: 12, top: 74, f: [5, 5, 6], t: [8.6, 5.8], draw: 1.2, act: 6.1 },
+    { art: "mail", at: "sm", size: "sm", left: 45, gap: 16, f: [5, 3, 5], t: [9, 6.2], draw: 0.9, act: 3.2 },
+    { art: "chat", at: "sm", size: "sm", left: 67, gap: 16, f: [5, 3, 6], t: [8.6, 5.8], draw: 1.1, act: 6.1 },
+    { art: "sparkle", at: "sm", size: "xs", left: 87, gap: 36, f: [3, 3, 0], t: [8, 5.6], draw: 1.3 },
   ],
   body: [
-    { art: "mobile", at: "md", size: "md", left: 5, top: 50, f: [6, 9, 5], t: [9.4, 6.6], draw: 1.5, act: 5 },
-    { art: "heart", at: "md", size: "sm", left: 15, top: 79, f: [7, 6, 8], t: [8.2, 5.4], draw: 1.65, act: 7.4 },
-    { art: "at", at: "wide", size: "md", left: 72, bottom: 72, f: [8, 7, 0], t: [9.8, 6.1], draw: 1.8, act: 10.2 },
-    { art: "sparkle", at: "wide", size: "xs", left: 86, bottom: 118, f: [4, 4, 0], t: [7.4, 5.2], draw: 1.95 },
+    // Down the column under the statement: the hand waves beside "say hi."
+    { art: "hand", at: "md", size: "md", left: 12, top: 21, f: [6, 6, 6], t: [9.4, 6.6], draw: 1.5, act: 3.6 },
+    { art: "sparkle", at: "md", size: "xs", left: 15.5, top: 37, f: [4, 4, 0], t: [7.4, 5.2], draw: 1.6 },
+    { art: "mobile", at: "md", size: "md", left: 4.5, top: 47, f: [6, 8, 5], t: [10, 6.9], draw: 1.65, act: 5 },
+    { art: "heart", at: "md", size: "sm", left: 14, top: 66, f: [7, 6, 8], t: [8.2, 5.4], draw: 1.75, act: 7.4 },
+    { art: "chat", at: "md", size: "sm", left: 5.5, top: 88, f: [6, 5, 6], t: [8.8, 6], draw: 1.85, act: 9.6 },
+    { art: "pencil", at: "md narrow", size: "md", left: 29, top: 54, f: [6, 6, 6], t: [9, 6.2], draw: 1.8, act: 12.4 },
+    // Beside the send button
+    { art: "at", at: "wide", size: "md", left: 72, bottom: 64, f: [8, 7, 0], t: [9.8, 6.1], draw: 1.8, act: 10.2 },
+    { art: "sparkle", at: "wide", size: "xs", left: 80.5, bottom: 128, f: [4, 4, 0], t: [7.4, 5.2], draw: 1.95 },
+    { art: "pencil", at: "wide", size: "md", left: 89, bottom: 84, f: [7, 6, 6], t: [9, 6.2], draw: 2.05, act: 12.4 },
 
-    { art: "phone", at: "sm", size: "sm", left: 84, top: 4, f: [5, 5, 6], t: [9.6, 6.4], draw: 1.4, act: 8.9 },
+    // Phones: above and beside the statement, and under the send button
+    { art: "sparkle", at: "sm", size: "xs", left: 82, top: "-34px", f: [3, 3, 0], t: [7.4, 5.2], draw: 1.3 },
+    { art: "hand", at: "sm", size: "sm", left: 72, top: "28px", f: [4, 4, 6], t: [9.4, 6.6], draw: 1.4, act: 3.6 },
+    { art: "sparkle", at: "sm", size: "xs", left: 56, top: "calc(100% + 30px)", f: [3, 3, 0], t: [7.4, 5.2], draw: 1.6 },
+    { art: "at", at: "sm", size: "sm", left: 74, top: "calc(100% + 46px)", f: [5, 4, 0], t: [9.8, 6.1], draw: 1.7, act: 10.2 },
   ],
 };
 
+function topOf(p) {
+  if (p.gap != null) return `calc(${RULE}% - ${p.gap + p.f[1]}px - var(--d) * 0.42px)`;
+  if (p.bottom != null) return `calc(100% - ${p.bottom}px)`;
+  return typeof p.top === "number" ? `${p.top}%` : p.top;
+}
+
 export function DoodleLayer({ region, on, celebrate = 0 }) {
   return (
-    <div className="doodles" data-on={on ? "" : undefined} data-celebrate={celebrate ? (celebrate % 2 ? "a" : "b") : undefined} aria-hidden="true">
+    <div
+      className="doodles contact-doodles"
+      data-on={on ? "" : undefined}
+      data-celebrate={celebrate ? (celebrate % 2 ? "a" : "b") : undefined}
+      aria-hidden="true"
+    >
       {PLACES[region].map((p, i) => {
         const Art = ART[p.art];
+        const at = p.at
+          .split(" ")
+          .map((a) => `doodle--at-${a}`)
+          .join(" ");
         return (
           <span
             key={`${p.art}-${p.at}-${i}`}
-            className={`doodle doodle--${p.size} doodle--at-${p.at}`}
+            className={`doodle doodle--${p.size} ${at}`}
             style={{
               left: `${p.left}%`,
-              ...(p.bottom != null ? { top: `calc(100% - ${p.bottom}px)` } : { top: `${p.top}%` }),
+              top: topOf(p),
               "--i": i,
               "--fx": p.f[0],
               "--fy": p.f[1],
@@ -84,22 +136,27 @@ export function DoodleLayer({ region, on, celebrate = 0 }) {
 
 /* ---------------------------------------------------------------------- */
 /* The flight: a paper plane loops through the empty half of the "Connect"
-   row every so often, leaving a dotted trail that fades behind it. */
+   row every so often, leaving a dotted trail that fades behind it. The
+   drawing spans the row's width and keeps clear of both rules: the loop's
+   top sits low enough for the plane to pass under the upper one, and the
+   viewBox's padding stops it growing into them once the headline has
+   reached full size while the row keeps getting wider. */
 
-const VIEW = [780, 100];
-const FLIGHT_D = "M-30 80C120 90 230 58 330 58A26 26 0 0 0 356 32A26 26 0 0 0 330 6A26 26 0 0 0 304 32A26 26 0 0 0 330 58C440 58 580 46 820 16";
+const VIEW = "0 -8 780 116";
+const FLIGHT_D = "M-30 84C120 92 230 72 330 72A24 24 0 0 0 354 48A24 24 0 0 0 330 24A24 24 0 0 0 306 48A24 24 0 0 0 330 72C440 72 580 60 820 30";
+const PLANE = 1.25; // the plane's scale, in line with the xs doodles
 
 const cubic = ([p0, p1, p2, p3], t) => {
   const u = 1 - t;
   return [0, 1].map((k) => u * u * u * p0[k] + 3 * u * u * t * p1[k] + 3 * u * t * t * p2[k] + t * t * t * p3[k]);
 };
 const SEGMENTS = [
-  (t) => cubic([[-30, 80], [120, 90], [230, 58], [330, 58]], t),
+  (t) => cubic([[-30, 84], [120, 92], [230, 72], [330, 72]], t),
   (t) => {
     const a = ((90 - 360 * t) * Math.PI) / 180;
-    return [330 + 26 * Math.cos(a), 32 + 26 * Math.sin(a)];
+    return [330 + 24 * Math.cos(a), 48 + 24 * Math.sin(a)];
   },
-  (t) => cubic([[330, 58], [440, 58], [580, 46], [820, 16]], t),
+  (t) => cubic([[330, 72], [440, 72], [580, 60], [820, 30]], t),
 ];
 
 /* Dense points along the path, then resampled at equal arc length so the
@@ -149,14 +206,14 @@ export function PlaneFlight({ on, reduce, celebrate = 0 }) {
   if (reduce) {
     const s = FRAMES[Math.round(STILL_AT * (FRAMES.length - 1))];
     return (
-      <svg className="flight" viewBox={`0 0 ${VIEW[0]} ${VIEW[1]}`} aria-hidden="true" focusable="false">
+      <svg className="flight" viewBox={VIEW} preserveAspectRatio="xMinYMid meet" aria-hidden="true" focusable="false">
         <defs>
           <mask id={maskId} maskUnits="userSpaceOnUse" x="-60" y="-40" width="920" height="180">
             <path d={FLIGHT_D} fill="none" stroke="#fff" strokeWidth="12" pathLength={1} strokeDasharray={`${STILL_AT} 1`} />
           </mask>
         </defs>
         <path className="flight__trail" d={FLIGHT_D} mask={`url(#${maskId})`} style={{ opacity: 0.7 }} />
-        <g transform={`translate(${s.x} ${s.y}) rotate(${s.r}) translate(-12 -12)`} className="flight__plane">
+        <g transform={`translate(${s.x} ${s.y}) rotate(${s.r}) scale(${PLANE}) translate(-12 -12)`} className="flight__plane">
           <PlaneArt />
         </g>
       </svg>
@@ -164,7 +221,7 @@ export function PlaneFlight({ on, reduce, celebrate = 0 }) {
   }
 
   return (
-    <svg className="flight" viewBox={`0 0 ${VIEW[0]} ${VIEW[1]}`} aria-hidden="true" focusable="false" data-on={on ? "" : undefined}>
+    <svg className="flight" viewBox={VIEW} preserveAspectRatio="xMinYMid meet" aria-hidden="true" focusable="false" data-on={on ? "" : undefined}>
       {on ? (
         <g key={celebrate}>
           <defs>
@@ -203,7 +260,7 @@ export function PlaneFlight({ on, reduce, celebrate = 0 }) {
               opacity: loopT({ times: [0, 0.35 / CYCLE, (FLY - 0.5) / CYCLE, f, 1] }),
             }}
           >
-            <g className="flight__plane" transform="translate(-12 -12)">
+            <g className="flight__plane" transform={`scale(${PLANE}) translate(-12 -12)`}>
               <PlaneArt />
             </g>
           </Motion.g>

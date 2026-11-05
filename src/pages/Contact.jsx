@@ -344,16 +344,19 @@ export default function Contact() {
       className="min-h-[calc(100dvh-4rem)] pb-[clamp(4rem,14vh,10rem)] md:min-h-[calc(100dvh-5rem)]"
       aria-labelledby="contact-title"
     >
-      {/* Headline: "Let's Connect" set as two display lines */}
-      <header className="contact-region pt-[max(1.25rem,3.5vh)] md:pt-[max(1.5rem,4.5vh)]">
-        <Suspense fallback={null}>
-          <DoodleLayer region="header" on={ready} celebrate={beats.celebrate} />
-          <PlaneFlight on={ready && wide} reduce={reduce} celebrate={beats.celebrate} />
-        </Suspense>
+      {/* Headline: "Let's Connect" set as two display lines. The doodles and
+          the flight are placed against the lines themselves (not the header,
+          whose top padding follows the viewport height), so they keep their
+          distance from the rules at every size. */}
+      <header className="pt-[max(1.25rem,3.5vh)] md:pt-[max(1.5rem,4.5vh)]">
         <h1 id="contact-title" className="sr-only">
           Let's Connect
         </h1>
-        <div aria-hidden="true">
+        <div aria-hidden="true" className="contact-region">
+          <Suspense fallback={null}>
+            <DoodleLayer region="header" on={ready} celebrate={beats.celebrate} />
+            <PlaneFlight on={ready && wide} reduce={reduce} celebrate={beats.celebrate} />
+          </Suspense>
           <TitleLines font="sans" start={ready}>
             <TitleLine as="div" delay={T.line1} innerClassName="grid-15 items-end">
               <TitleText col="1 / span 8">Let's</TitleText>

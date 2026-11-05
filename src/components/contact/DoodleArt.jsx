@@ -5,7 +5,7 @@
    animates, so the draw-on rule on the stroke never competes with it.
 
    Geometry adapted from Lucide (https://lucide.dev): mail, message-circle-more,
-   phone-call, at-sign, smartphone, heart, sparkle, send.
+   phone-call, at-sign, smartphone, heart, sparkle, send, hand, pencil-line.
    ISC License, Copyright (c) Lucide Icons and Contributors. Permission to use,
    copy, modify, and/or distribute this software for any purpose with or
    without fee is hereby granted, provided that the above copyright notice and
@@ -108,6 +108,42 @@ export function SparkleArt() {
         {...P}
       />
     </g>
+  );
+}
+
+/** A raised hand that waves hello now and then, motion marks either side. */
+export function HandArt() {
+  return (
+    <>
+      <g className="art-hand__marks">
+        <path d="M2.9 1.4a7 7 0 0 0-1.9 3.6" {...P} />
+        <path d="M22.2 0.9a7 7 0 0 1 1.6 3.2" {...P} />
+      </g>
+      <g className="art-hand">
+        <path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2" {...P} />
+        <path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2" {...P} />
+        <path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8" {...P} />
+        <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" {...P} />
+      </g>
+    </>
+  );
+}
+
+/** Pencil that scribbles now and then while its line writes itself again. */
+export function PencilArt() {
+  return (
+    <>
+      <g className="art-pencil__line">
+        <path d="M13 21h8" {...P} />
+      </g>
+      <g className="art-pencil">
+        <path
+          d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+          {...P}
+        />
+        <path d="m15 5 4 4" {...P} />
+      </g>
+    </>
   );
 }
 
