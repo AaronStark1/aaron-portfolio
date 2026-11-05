@@ -244,6 +244,10 @@ function ProjectTile({ project, number, tone, index, onWatch, className = "" }) 
     releaseRef.current = claimPreview(halt);
     setWanted(true);
     v.muted = true;
+    // Reels with a long title-card intro skip it so the card shows the app at
+    // once; a resumed preview past that point carries on where it paused.
+    const from = project.previewStart ?? 0;
+    if (from && v.currentTime < from) v.currentTime = from;
     const attempt = v.play();
     // Autoplay refused: drop the intent so the poster and controls stay honest.
     // (AbortError is just a play() cut short by our own pause(): nothing to do.)

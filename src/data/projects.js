@@ -16,6 +16,9 @@ export const projectsData = [
         image: "/projects/project2.png",
         live: "https://deventhub-mern.vercel.app",
         github: "https://github.com/AaronStark1/deventhub-mern",
+        video: "/projects/showcase/deventhub-showcase.mp4",
+        poster: "/projects/showcase/deventhub-showcase-poster.jpg",
+        previewStart: 9,
     },
     {
         id: 3,
