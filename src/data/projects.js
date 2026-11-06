@@ -47,6 +47,8 @@ export const projectsData = [
         image: "/projects/project5.png",
         live: "https://pokemon-gotta-match-em-all.netlify.app/",
         github: "https://github.com/AaronStark1/gotta-match-em-all",
+        video: "/projects/showcase/pokemon-match-showcase.mp4",
+        poster: "/projects/showcase/pokemon-match-poster.webp",
     }
     // ... rest
 ];
