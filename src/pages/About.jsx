@@ -3,9 +3,26 @@ import { motion as Motion, useInView, useReducedMotion } from "motion/react";
 import Sheet from "../components/Sheet";
 import { TitleLines, TitleLine, TitleText } from "../components/TitleLines";
 import SocialTile from "../components/SocialTile";
+import TechShowcase from "../components/about/TechShowcase";
+import CompanyMark from "../components/about/CompanyMark";
 import { EASE, STAGGER, fadeChild, riseChild, riseParent, useFontsReady } from "../lib/motion";
 import { socials } from "../data/socials";
+import { stack } from "../data/stack";
 import "../styles/socials.css";
+import "../styles/about.css";
+
+/* The employer in the facts: its name links to its site and reveals its own
+   logo and tagline. Logo: the header mark published at bytestrone.com
+   (/Images/bytestrone-logo-light 2.webp, 1100 x 201, transparent), stored
+   here unaltered. */
+const COMPANY = {
+  name: "Bytestrone",
+  href: "https://www.bytestrone.com/",
+  domain: "bytestrone.com",
+  logo: "/about/bytestrone-logo.webp",
+  tagline: "Experience Engineering Excellence",
+  descriptor: "Software engineering",
+};
 
 const PARAGRAPHS = [
   <>
@@ -28,7 +45,14 @@ const PARAGRAPHS = [
 ];
 
 const FACTS = [
-  { term: "Currently", detail: "Junior Software Engineer @ Bytestrone" },
+  {
+    term: "Currently",
+    detail: (
+      <>
+        Junior Software Engineer @ <CompanyMark {...COMPANY} />
+      </>
+    ),
+  },
   { term: "Stack", detail: ".NET, Next.js" },
   { term: "Approach", detail: "Spec-Driven Dev · DDD · Vertical Slice" },
   { term: "Based in", detail: "Kochi" },
@@ -102,6 +126,8 @@ export default function About() {
         </div>
       </div>
 
+      <TechShowcase items={stack} />
+
       <Elsewhere child={child} />
     </Sheet>
   );
@@ -163,7 +189,7 @@ function Facts({ go, child }) {
       animate={go && seen ? "visible" : "hidden"}
     >
       {FACTS.map((f) => (
-        <Motion.div key={f.term} className="flex justify-between gap-6 border-b border-rule py-3" variants={child}>
+        <Motion.div key={f.term} className="relative flex justify-between gap-6 border-b border-rule py-3" variants={child}>
           <dt className="text-fg-muted">{f.term}</dt>
           <dd className="m-0 text-right">{f.detail}</dd>
         </Motion.div>

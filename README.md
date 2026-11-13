@@ -97,6 +97,8 @@ Every page renders inside one `Sheet` component: a rounded panel that enters wit
 
 <br />
 
+In the facts, **Bytestrone** links to the company's own site and, on hover or keyboard focus (a small "+" beside it on touch screens, so the name stays a one-tap link), raises a small ink card out of its row: the company's official logo, stored unaltered in `public/about/`, its tagline and what it does. Below the facts, **What I work with** sets one technology at a time at display size on its own hairline. The list (.NET, Next.js, React, TypeScript, Node.js, MongoDB, Tailwind CSS, Motion) is limited to what the About copy states or a showcased project's `package.json` contains, and `src/data/stack.js` records the evidence beside each entry. Names turn over the way the headlines arrive: the outgoing name lifts out of its mask a character at a time while the next rises in behind it, and a one-line description in the statement voice follows a beat later. An index of every name doubles as navigation, with a hairline under the current one that fills while it is on show. Rotation runs only while the section is on screen, holds while the pointer or keyboard focus is in the index, and stops when a name is chosen or **Pause** is pressed. Heights never change as names rotate, and under reduced motion nothing rotates: chosen names cross-fade in place.
+
 About ends with **Elsewhere**: six platform cards in the NavCard family (GitHub, LinkedIn, DEV, Discord, Spotify, Email), three across on desktop, two on tablets, one on phones. At rest they wear the site mattes; on hover or focus the platform's own colour rises from the bottom edge, the glyph lifts, the handle appears and a soft brand-tinted shadow settles under the tile. The marks are the platforms' official vectors (Simple Icons paths; LinkedIn's from Font Awesome, since Simple Icons no longer ships it), filled with the current text colour so they follow the wipe.
 
 Behind each card's furniture lives a **micro-world**: a flat-vector illustration in the platform's own palette that plays while the card is hovered or keyboard-focused. All six are drawn from one small library: filled shapes on shared corner radii and two stroke weights, one flat drop-shadow model, palette roles (surface, detail, shade, accents) supplied per platform in `src/data/socials.js`, and a particle set taken from Phosphor's fill icons (MIT, the family the site already uses). Every scene plays in three phases on a shared clock: **activation** (the hero enters, props follow in a stagger), a **signature** action, then quiet **ambient** motion that runs until the pointer leaves, after which everything fades and resets unseen. GitHub's terminal powers on, types `git merge feat` and draws a branch that merges back with a "merged" tag; LinkedIn's network grows from your profile, connections draw in sequence, a message pops and a dot keeps travelling along one link; DEV's article opens, types its title and fills its body as a code snippet slides in behind; Discord's gamepad bounces in, presses its buttons and bursts a pixel heart; Spotify's record slides out of its sleeve, spins up and releases notes over a pulsing equalizer; Email's envelope opens, its letter folds into a paper plane that flies off along a dotted arc, and the next letter rises. The card is the Motion variant root (`rest` → `hover` via `whileHover` / `whileFocus`), so scenes are declarative variants with no React state or timers, built from `motionKit()` in `src/lib/worlds.js`. Under reduced motion each settles on its final composition without movement, and on touch devices, which have no hover, that still tableau is shown in a monochrome remap of the palette so it sits on the site mattes.
@@ -192,7 +194,7 @@ Five tiles on a 15-column grid, each with its own tone (cream, ochre, ink, brick
 
 <table>
   <tr>
-    <td width="50%"><img src=".github/assets/achievements-light.png" alt="Achievements page in light mode: Proof of Progress headline, serif statement beside four statistics, three featured badge tiles on cream, ochre and brick mattes, and an index of fourteen credentials with Badge, Certificate and Verify actions" width="100%" /></td>
+    <td width="50%"><img src=".github/assets/achievements-light.png" alt="Achievements page in light mode: Proof of Progress headline with line doodles, serif statement beside three statistics, three featured badge tiles on cream, ochre and brick mattes, and an index of fourteen credentials with Badge, Certificate and Verify actions" width="100%" /></td>
     <td width="50%"><img src=".github/assets/achievements-dark.png" alt="Achievements page in dark mode: the same composition on the charcoal sheet with cream type" width="100%" /></td>
   </tr>
   <tr>
@@ -203,7 +205,7 @@ Five tiles on a 15-column grid, each with its own tone (cream, ochre, ink, brick
 
 <br />
 
-`/achievements` is the credentials page: a two-line **Proof of / Progress** headline, a serif statement beside four numbers that are computed from the data (credentials, issuers, fields, year span), featured tiles that carry the official badge artwork on the cream / ochre / brick / ink mattes, and an index of every credential with its issue date, field and a **Verify** link to the issuing platform. Filters by field appear only once there are enough entries to need them.
+`/achievements` is the credentials page: a two-line **Proof of / Progress** headline, a serif statement beside three numbers that are computed from the data (credentials, issuers, fields) and count up from zero, eased out and a beat apart, the first time they come into view (no re-renders while they count; under reduced motion they simply show), featured tiles that carry the official badge artwork on the cream / ochre / brick / ink mattes, and an index of every credential with its issue date, field and a **Verify** link to the issuing platform. Filters by field appear only once there are enough entries to need them.
 
 Badge images are the issuers' own artwork, stored under `public/achievements/badges/` with the source URL kept in the data; if one fails to load, a hairline **seal** with the issuer's initial takes its place so the composition never breaks. Each entry offers **Badge** and, where the platform publishes one, **Certificate**: both open a gallery that steps through that kind of artwork only, with arrow keys, swipes and a Download PDF action when the original is public (`public/achievements/certificates/`). The page ends with the Projects and Contact tiles, in the Home tones.
 
@@ -274,6 +276,8 @@ aaron-portfolio/
 │   │   ├── NavCard.jsx         # tonal tile (cream / ochre / brick / ink) as button, Link or anchor
 │   │   ├── RevealLink.jsx      # CSS double-label slide link, NavLink-aware
 │   │   ├── Lightbox.jsx        # credential gallery: badges or certificates, keyboard, swipe, focus return
+│   │   ├── CountUp.jsx         # a figure that counts up with its block's entrance, written straight to the DOM
+│   │   ├── about/              # TechShowcase ("What I work with" rotation) · CompanyMark (employer link + identity card)
 │   │   ├── SocialTile.jsx      # Elsewhere tile: site matte at rest, platform colour wipes up on hover
 │   │   ├── BrandIcons.jsx      # official platform marks as currentColor SVG paths (Simple Icons; LinkedIn via Font Awesome)
 │   │   ├── worlds/             # one scene per platform (GithubWorld … EmailWorld), World stage, kit (particles), glyphs, shapes
@@ -281,11 +285,13 @@ aaron-portfolio/
 │   │   ├── Navbar.jsx          # layoutId active underline, inverted mobile menu sheet
 │   │   └── ThemeToggle.jsx     # half-filled dot that turns over
 │   ├── context/                # ThemeContext + ThemeProvider (localStorage "theme")
-│   ├── data/                   # projects.js (the five tiles) · achievements.js (credentials) · socials.js (platform tiles)
+│   ├── data/                   # projects.js (the five tiles) · achievements.js (credentials) · socials.js (platform tiles) · stack.js (What I work with, with evidence)
 │   ├── pages/                  # Home · About · Projects · Achievements · Contact · NotFound
-│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · achievements.css · socials.css · contact.css · notfound.css
+│   └── styles/                 # projects.css (tile tones, hover, cursor pill) · achievements.css · socials.css · contact.css · notfound.css · about.css
 ├── public/projects/            # project1–5.png
 ├── public/achievements/        # badges/ (official artwork, one per credential) · certificates/ (PNG view + PDF where public)
+├── public/about/               # bytestrone-logo.webp (the company's published header logo, unaltered)
+├── docs/                       # portfolio-enhancement-audit.md (animation and polish audit, recommendations only)
 ├── public/_redirects           # Netlify SPA fallback so deep links and refreshes resolve
 └── .github/assets/             # the screenshots in this README
 ```

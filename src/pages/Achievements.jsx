@@ -5,6 +5,7 @@ import Sheet from "../components/Sheet";
 import NavCard from "../components/NavCard";
 import RevealLink from "../components/RevealLink";
 import Lightbox from "../components/Lightbox";
+import CountUp from "../components/CountUp";
 import { claimCelebration } from "../components/achievements/celebration";
 import { TitleLines, TitleLine, TitleText } from "../components/TitleLines";
 import { EASE, STAGGER, fadeChild, riseChild, riseParent, useFontsReady, useMediaQuery } from "../lib/motion";
@@ -64,15 +65,17 @@ export default function Achievements() {
   );
   const featured = useMemo(() => all.filter((c) => c.featured).sort((a, b) => a.featured - b.featured), [all]);
 
-  const stats = useMemo(() => {
-    const first = Math.min(...all.filter((c) => c.issued).map((c) => Number(c.issued.slice(0, 4))));
-    return [
+  const stats = useMemo(
+    () => [
       { value: all.length, label: all.length === 1 ? "Credential" : "Credentials" },
       { value: new Set(all.map((c) => c.issuer)).size, label: "Issuers" },
       { value: new Set(all.map((c) => c.category)).size, label: "Fields" },
-      { value: first, label: "Since" },
-    ];
-  }, [all]);
+    ],
+    [all]
+  );
+  /* The numbers rise and count up once, when they are actually on screen */
+  const statsRef = useRef(null);
+  const statsSeen = useInView(statsRef, { once: true, amount: 0.5 });
 
   /* Two galleries, each stepping only through its own kind of artwork */
   const galleries = useMemo(
@@ -203,17 +206,28 @@ export default function Achievements() {
           taken <em>on trust</em>.
         </Motion.p>
 
+        {/* Each figure counts up from zero as its column rises, a beat after the one before */}
         <Motion.dl
-          className="col-span-full m-0 grid grid-cols-2 gap-x-6 gap-y-8 md:col-span-8 md:col-start-8 md:grid-cols-4"
+          ref={statsRef}
+          className="col-span-full m-0 grid grid-cols-2 gap-x-6 gap-y-8 md:col-span-8 md:col-start-8 md:grid-cols-3"
           variants={riseParent(0.6, STAGGER.card)}
           initial="hidden"
-          animate={ready ? "visible" : "hidden"}
+          animate={ready && statsSeen ? "visible" : "hidden"}
           aria-label="Achievement statistics"
         >
-          {stats.map((s) => (
-            <Motion.div key={s.label} className="flex flex-col-reverse border-t border-rule pt-3" variants={child}>
+          {stats.map((s, i) => (
+            <Motion.div
+              key={s.label}
+              // On phones (two columns) an odd last figure takes the whole row, so its rule closes the grid
+              className={`flex flex-col-reverse border-t border-rule pt-3 ${
+                stats.length % 2 && i === stats.length - 1 ? "col-span-2 md:col-span-1" : ""
+              }`}
+              variants={child}
+            >
               <dt className="label mt-2 text-fg-muted">{s.label}</dt>
-              <dd className="display-sans m-0 text-[clamp(2.5rem,4.6vw,4.25rem)] leading-[0.95] tabular-nums">{s.value}</dd>
+              <dd className="display-sans m-0 text-[clamp(2.5rem,4.6vw,4.25rem)] leading-[0.95] tabular-nums">
+                <CountUp value={s.value} duration={1.7} />
+              </dd>
             </Motion.div>
           ))}
         </Motion.dl>

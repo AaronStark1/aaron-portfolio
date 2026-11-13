@@ -1,0 +1,323 @@
+/* /about page-only styles: the "What I work with" showcase and the company
+   mark in the facts. Everything colour-related goes through the tokens in
+   index.css, so both follow the theme. */
+
+/* ------------------------------------------------------------------ */
+/* What I work with (components/about/TechShowcase.jsx)                */
+/* ------------------------------------------------------------------ */
+
+/* The name: one display line in a mask a touch taller than its line box.
+   The line box (1.12) holds the ascenders; the extra 0.06em below holds the
+   tails of g, j, p and y (they reach ~0.215em under the baseline) with air
+   before the hairline, which therefore sits where the site's descender
+   headlines put theirs. A character moved 112% of its own height is fully
+   outside the mask either way. Every name sits in the same cell, so the
+   outgoing one and the incoming one overlap while they turn over. */
+.tech-word {
+  display: grid;
+  overflow: hidden;
+  margin-top: clamp(0.5rem, 1.6vh, 1rem);
+  padding-bottom: 0.06em;
+  font-size: var(--fs-display);
+  line-height: 1.12;
+}
+.tech-word__item {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+.tech-word__char {
+  display: inline-block;
+}
+
+/* Its line in the statement voice: every line laid out in one cell, only
+   the current one visible, so the block is as tall as the longest line. */
+.tech-line {
+  display: grid;
+  max-width: 34ch;
+}
+.tech-line > * {
+  grid-area: 1 / 1;
+  align-self: start;
+}
+.tech-line__sizer {
+  visibility: hidden;
+}
+
+/* The index: the names in the label register; the current one in full ink
+   with a hairline that fills while it is on show */
+.tech-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+}
+@media (min-width: 768px) {
+  .tech-index {
+    justify-content: flex-end;
+  }
+}
+.tech-tab {
+  position: relative;
+  appearance: none;
+  margin: 0;
+  padding: 0.6rem 0 0.7rem;
+  border: 0;
+  background: none;
+  color: var(--fg-muted);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.3s var(--ease-out);
+}
+.tech-tab[aria-current="true"] {
+  color: var(--fg);
+}
+.tech-tab__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.3rem;
+  height: 1px;
+  overflow: hidden;
+}
+.tech-tab[aria-current="true"] .tech-tab__bar {
+  background-color: color-mix(in srgb, var(--fg) 22%, transparent);
+}
+.tech-tab__fill {
+  position: absolute;
+  inset: 0;
+  background-color: var(--fg);
+  transform-origin: left center;
+}
+.tech-tab__fill[data-timer] {
+  animation: tech-progress var(--dwell, 4s) linear both;
+}
+@keyframes tech-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* A hairline answers the pointer under the other names */
+.tech-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.3rem;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s var(--ease-out);
+}
+@media (hover: hover) {
+  .tech-tab:hover {
+    color: var(--fg);
+  }
+  .tech-tab:not([aria-current="true"]):hover::after {
+    transform: scaleX(1);
+  }
+}
+
+/* The position counter rolls like a link label */
+.tech-roll {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding: 0.15em 0;
+  margin: -0.15em 0;
+}
+.tech-roll > * {
+  grid-area: 1 / 1;
+}
+
+/* ------------------------------------------------------------------ */
+/* Company mark (components/about/CompanyMark.jsx)                     */
+/* ------------------------------------------------------------------ */
+
+/* No position of its own: the card is placed against the row the name sits
+   in (the facts row is position: relative), at its right edge, which is
+   where the right-aligned name ends. */
+.company {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+/* The name: the site's link roll, a resting hairline that marks it as a
+   link inside the facts, and an arrow that leans out while it's in hand */
+.company__link {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: none;
+}
+.company__link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.4;
+  transform-origin: left center;
+  transition: opacity 0.35s var(--ease-out);
+}
+.company[data-open] .company__link::before,
+.company__link:focus-visible::before {
+  opacity: 1;
+}
+.company__arrow {
+  flex: none;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.company[data-open] .company__arrow {
+  transform: translate(0.12em, -0.12em);
+}
+
+/* Touch: the "+" that opens the card, turning to "x" while it's open.
+   Drawn 22px; its hit area reaches 40px. */
+.company__toggle {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin-left: 0.3rem;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+}
+.company__toggle::before {
+  content: "";
+  position: absolute;
+  inset: -0.5625rem;
+}
+.company__toggle[aria-expanded="true"] {
+  background-color: var(--fill);
+  color: var(--fill-fg);
+}
+.company__plus,
+.company__plus::after {
+  display: block;
+  width: 0.5625rem;
+  height: 1px;
+  background-color: currentColor;
+}
+.company__plus {
+  position: relative;
+  transition: transform 0.45s var(--ease-out);
+}
+.company__plus::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: rotate(90deg);
+}
+.company__toggle[aria-expanded="true"] .company__plus {
+  transform: rotate(45deg);
+}
+
+/* The card: an ink panel in the tile shape (one rounded corner), anchored to
+   the end of the name and rising out of its line. Ink in both themes, so the
+   official logo (drawn for dark grounds) shows exactly as published. */
+.company__card {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  z-index: 30;
+  display: grid;
+  justify-items: start;
+  gap: 0.9rem;
+  width: min(20rem, calc(100vw - 3rem));
+  padding: 1.15rem 1.15rem 1rem;
+  background-color: var(--ink-card);
+  color: var(--ink-card-fg);
+  border-bottom-right-radius: var(--radius-card);
+  text-align: left;
+  text-decoration: none;
+  white-space: normal;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Opened near the top of the window, it hangs below the name instead */
+.company__card[data-side="below"] {
+  top: calc(100% + 0.5rem);
+  bottom: auto;
+}
+[data-theme="dark"] .company__card {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cream) 14%, transparent);
+}
+/* An invisible bridge over the gap and the row's padding, so the pointer can
+   travel from the name onto the card */
+.company__card::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 1.375rem;
+}
+.company__card[data-side="below"]::after {
+  top: auto;
+  bottom: 100%;
+}
+.company__logo {
+  width: 10.5rem;
+  height: auto;
+  transform-origin: left center;
+}
+.company__tagline {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.company__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding-top: 0.8rem;
+  border-top: 1px solid color-mix(in srgb, var(--ink-card-fg) 24%, transparent);
+  color: color-mix(in srgb, var(--ink-card-fg) 78%, transparent);
+}
+.company__domain {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion: states change, nothing travels                      */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .tech-tab,
+  .tech-tab::after,
+  .company__link::before,
+  .company__arrow,
+  .company__toggle,
+  .company__plus {
+    transition-duration: 0.01ms !important;
+  }
+  .company[data-open] .company__arrow {
+    transform: none !important;
+  }
+  .tech-tab__fill[data-timer] {
+    animation: none;
+  }
+}
