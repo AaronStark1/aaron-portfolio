@@ -12,7 +12,9 @@ const FOCUSABLE = 'a[href], button:not([disabled]), video, [tabindex]:not([tabin
  * page theme. Esc and the backdrop close it, Tab cycles inside it, focus lands
  * on the close control and returns to `trigger` afterwards, the page behind
  * stops scrolling, and every card preview is paused while it is up. The reel
- * starts from the top, muted, with the native controls for sound and seeking.
+ * starts from the top with audio by default (if the video has any, falling
+ * back to muted autoplay if policy requires), with native controls for sound
+ * and seeking.
  */
 export default function ShowcaseModal({ project, number, trigger, onClose }) {
   const reduce = useReducedMotion();
@@ -70,7 +72,7 @@ export default function ShowcaseModal({ project, number, trigger, onClose }) {
           aria-modal="true"
           aria-labelledby={titleId}
           aria-describedby={descId}
-          className="showcase"
+          className={`showcase${project.orientation === "portrait" ? " showcase--portrait" : ""}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: { duration: 0.25 } }}
           exit={{ opacity: 0, transition: { duration: 0.25, delay: 0.1 } }}
@@ -141,10 +143,19 @@ function ShowcasePlayer({ project, videoRef }) {
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    v.muted = true;
     v.currentTime = 0;
+    v.muted = false;
     const attempt = v.play();
-    if (attempt && typeof attempt.catch === "function") attempt.catch(() => {});
+    if (attempt && typeof attempt.catch === "function") {
+      attempt.catch(() => {
+        // If the browser restricts unmuted autoplay, retry muted so playback still begins
+        if (v.muted === false) {
+          v.muted = true;
+          const retry = v.play();
+          if (retry && typeof retry.catch === "function") retry.catch(() => {});
+        }
+      });
+    }
     return () => v.pause();
   }, [videoRef]);
 
@@ -167,7 +178,6 @@ function ShowcasePlayer({ project, videoRef }) {
         aria-label={`${project.title} showcase reel`}
         controls
         playsInline
-        muted
         preload="metadata"
         onError={() => setFailed(true)}
       />

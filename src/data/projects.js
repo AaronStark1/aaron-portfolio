@@ -49,6 +49,30 @@ export const projectsData = [
         github: "https://github.com/AaronStark1/gotta-match-em-all",
         video: "/projects/showcase/pokemon-match-showcase.mp4",
         poster: "/projects/showcase/pokemon-match-poster.webp",
+    },
+    {
+        id: 6,
+        title: "rBuild",
+        description: "Editorial resume builder: a seven-step studio typesets a live A4 page as you write, across seven templates and six accents. React 19, Vite and MUI on a json-server API, with autosaved drafts, a completeness score, PDF export, an export archive and a WebGL ink-bleed theme switch.",
+        image: "/projects/project6.png",
+        live: "https://resume-builder-react-jsonserver.vercel.app/",
+        github: "https://github.com/AaronStark1/resume-builder-react-jsonserver",
+        video: "/projects/showcase/rbuild-showreel.mp4",
+        poster: "/projects/showcase/rbuild-showreel-poster.jpg",
+        previewStart: 4,
+    },
+    {
+        id: 7,
+        title: "TrailSnack",
+        description: "Offline-first trail companion that identifies wild berries, plants and mushrooms with zero bars of signal. EmbeddingGemma runs in the browser through Transformers.js against a bundled 81-species safety database, and a deterministic engine lets toxic lookalikes win, so the default verdict stays \"do not ingest\". A React 19 PWA with a WebGL2 thicket.",
+        image: "/projects/project7.webp",
+        live: "https://trailsnack.onrender.com",
+        github: "https://github.com/AaronStark1/trailsnack-hacktoberfest-2026",
+        video: "/projects/showcase/trailsnack-showreel.mp4",
+        poster: "/projects/showcase/trailsnack-showreel-poster.jpg",
+        previewStart: 7,
+        // A 9:16 phone recording: the tile frames it as a phone, the modal plays it upright.
+        orientation: "portrait",
     }
     // ... rest
 ];

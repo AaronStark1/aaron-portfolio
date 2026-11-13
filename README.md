@@ -165,7 +165,7 @@ Behind each card's furniture lives a **micro-world**: a flat-vector illustration
 
 <br />
 
-Five tiles on a 15-column grid, each with its own tone (cream, ochre, ink, brick, cream) and layout kind (split, wide, half). Screenshots reveal through an animated `clip-path` inset; the first image loads eagerly, the rest lazily. Each tile opens the live site, and its caption carries the Live site and GitHub links.
+Seven tiles on a 15-column grid, each with its own tone (cream, ochre, ink, brick, cream, ink, ochre) and layout kind (split, wide, half, phone). The phone kind frames a portrait reel as a handset rising off a 4:5 matte, and its showcase plays upright. Screenshots reveal through an animated `clip-path` inset; the first image loads eagerly, the rest lazily. Each tile opens the live site, and its caption carries the Live site and GitHub links.
 
 | # | Project | Live | Repo |
 |---|---|---|---|
@@ -174,6 +174,8 @@ Five tiles on a 15-column grid, each with its own tone (cream, ochre, ink, brick
 | 03 | **SpecShield QA** · Mastra agents on local Gemma, Sentry tracing | [dev.to](https://dev.to/aaronstark1/specshield-qa-turning-nda-locked-specs-into-playwright-suites-with-local-gemma-mastra-and-sentry-3jp0) | [specshield-qa](https://github.com/AaronStark1/specshield-qa) |
 | 04 | **Simple Bank App** · vanilla JS, sessionStorage | [github.io](https://aaronstark1.github.io/ourbank-website/) | [ourbank-website](https://github.com/AaronStark1/ourbank-website) |
 | 05 | **Gotta Match 'Em All** · React, NES.css, PokéAPI | [netlify](https://pokemon-gotta-match-em-all.netlify.app/) | [gotta-match-em-all](https://github.com/AaronStark1/gotta-match-em-all) |
+| 06 | **rBuild** · React 19, MUI, json-server, WebGL ink-bleed theme | [vercel](https://resume-builder-react-jsonserver.vercel.app/) | [resume-builder-react-jsonserver](https://github.com/AaronStark1/resume-builder-react-jsonserver) |
+| 07 | **TrailSnack** · on-device EmbeddingGemma, Transformers.js, offline PWA | [render](https://trailsnack.onrender.com) | [trailsnack-hacktoberfest-2026](https://github.com/AaronStark1/trailsnack-hacktoberfest-2026) |
 
 <sub>01 has no public deployment yet, so its tile opens the repository. 03 is a local-first app, so its tile opens the DEV write-up with the recorded demo.</sub>
 

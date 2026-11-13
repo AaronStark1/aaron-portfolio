@@ -10,14 +10,17 @@ import { claimPreview, stopPreviews } from "../lib/showcase";
 import { projectsData } from "../data/projects";
 import "../styles/projects.css";
 
-/* Editorial rhythm for the five tiles: two asymmetric splits, one full-width
-   band with a stacked caption, then a side-by-side pair. */
+/* Editorial rhythm for the seven tiles: two asymmetric splits, one full-width
+   band with a stacked caption, a side-by-side pair, a split that swings the
+   screenshot back to the left, then a tall phone tile for the portrait reel. */
 const LAYOUT = [
   { tone: "cream", kind: "split-right" },
   { tone: "ochre", kind: "split-left" },
   { tone: "ink", kind: "wide" },
   { tone: "brick", kind: "half-left" },
   { tone: "cream", kind: "half-right" },
+  { tone: "ink", kind: "split-right" },
+  { tone: "ochre", kind: "phone" },
 ];
 
 const ITEM_CLASS = {
@@ -26,6 +29,7 @@ const ITEM_CLASS = {
   wide: "col-span-full",
   "half-left": "col-span-full md:col-start-1 md:col-span-7",
   "half-right": "col-span-full md:col-start-9 md:col-span-7",
+  phone: "col-span-full grid-15",
 };
 
 const SPRING = { stiffness: 420, damping: 38, mass: 0.6 };
@@ -67,8 +71,10 @@ export default function Projects() {
 
 /* ------------------------------------------------------------------ */
 
-function ProjectItem({ project, index, tone, kind, onWatch }) {
+function ProjectItem({ project, index, tone, kind: layoutKind, onWatch }) {
   const reduce = useReducedMotion();
+  // A 9:16 reel only reads as a phone, wherever the project sits in the list.
+  const kind = project.orientation === "portrait" ? "phone" : layoutKind;
   const number = String(index + 1).padStart(2, "0");
   const child = reduce ? fadeChild : riseChild;
 
@@ -123,6 +129,26 @@ function ProjectItem({ project, index, tone, kind, onWatch }) {
       <>
         <ProjectTile project={project} number={number} tone={tone} index={index} onWatch={onWatch} className="col-span-full md:col-start-7 md:col-span-9" />
         <div className="col-span-full mt-5 md:col-start-1 md:col-span-5 md:mt-[4rem] md:self-start">
+          {title}
+          {description("mt-3")}
+          {links}
+        </div>
+      </>
+    );
+  } else if (kind === "phone") {
+    // Tall matte on the right with the handset rising off its bottom edge,
+    // caption bottom-aligned on the left so it meets the phone's bleed.
+    body = (
+      <>
+        <ProjectTile
+          project={project}
+          number={number}
+          tone={tone}
+          index={index}
+          onWatch={onWatch}
+          className="project-tile--phone col-span-full md:col-start-8 md:col-span-8 lg:col-start-10 lg:col-span-6"
+        />
+        <div className="col-span-full mt-5 md:col-start-1 md:col-span-6 md:mt-0 md:self-end lg:col-start-3">
           {title}
           {description("mt-3")}
           {links}
