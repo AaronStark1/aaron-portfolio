@@ -29,6 +29,8 @@ export const projectsData = [
         github: "https://github.com/AaronStark1/specshield-qa",
         video: "/projects/showcase/specshield-showreel.mp4",
         poster: "/projects/showcase/specshield-showreel-poster.jpg",
+        // Skip the title card: the hover preview opens on the particle shield forming.
+        previewStart: 4.5,
     },
     {
         id: 4,
